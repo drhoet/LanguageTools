@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsWord", "LanguageTools\LanguageToolsWord.csproj", "{C96B3910-A547-473D-BE37-4659C33DD0FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsWord", "LanguageToolsWord\LanguageToolsWord.csproj", "{C96B3910-A547-473D-BE37-4659C33DD0FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsBackend", "LanguageToolsBackend\LanguageToolsBackend.csproj", "{C86A2DF0-865E-4851-ABBB-8523ABF494EB}"
 EndProject
