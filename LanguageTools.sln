@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsWord", "Langua
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsBackend", "LanguageToolsBackend\LanguageToolsBackend.csproj", "{C86A2DF0-865E-4851-ABBB-8523ABF494EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseManager", "DatabaseManager\DatabaseManager.csproj", "{D84F02A6-6739-477E-ABB9-3B67767B2DA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C86A2DF0-865E-4851-ABBB-8523ABF494EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C86A2DF0-865E-4851-ABBB-8523ABF494EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C86A2DF0-865E-4851-ABBB-8523ABF494EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D84F02A6-6739-477E-ABB9-3B67767B2DA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D84F02A6-6739-477E-ABB9-3B67767B2DA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D84F02A6-6739-477E-ABB9-3B67767B2DA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D84F02A6-6739-477E-ABB9-3B67767B2DA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
