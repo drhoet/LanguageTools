@@ -84,6 +84,10 @@ namespace DatabaseManager
 
         private void initializeNewDatabaseToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (commitChangesCancellable() == DialogResult.Cancel)
+            {
+                return;
+            }
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
@@ -97,11 +101,6 @@ namespace DatabaseManager
 
         private void initializeDatabase()
         {
-            if (commitChangesCancellable() == DialogResult.Cancel)
-            {
-                return;
-            }
-
             SQLiteCommand command = new SQLiteCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
             command.ExecuteNonQuery();
         }

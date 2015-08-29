@@ -26,15 +26,15 @@ namespace DatabaseManager
 
         public Item parseLine(string line)
         {
+            sbWord.Clear();
+            sbGender.Clear();
+
             string[] split = line.Split('\t');
             if (split[2] == "noun")
             {
                 bool inBrackets = false;
                 bool inCurlyBrackets = false;
                 bool inSquareBrackets = false;
-                sbWord.Clear();
-                sbGender.Clear();
-
                 string val = split[0];
                 char c;
                 for (int i = 0; i < val.Length; ++i)
@@ -111,10 +111,13 @@ namespace DatabaseManager
             string line;
             while((line = reader.ReadLine()) != null)
             {
-                Item result = parseLine(line);
-                if (result.Gender.Length > 0)
+                if (line != "" && !line.StartsWith("#"))
                 {
-                    yield return parseLine(line);
+                    Item result = parseLine(line);
+                    if (result.Gender.Length > 0)
+                    {
+                        yield return result;
+                    }
                 }
             }
             yield break;
