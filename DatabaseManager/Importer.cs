@@ -31,5 +31,7 @@ namespace DatabaseManager {
         public virtual void Close() {
             stream.Close();
         }
+
+        public List<ImportParsingException> ImportErrors { get; } = new List<ImportParsingException>();
     }
 }

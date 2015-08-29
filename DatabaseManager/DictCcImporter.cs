@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DatabaseManager {
-    //TODO: performance improvements
     //TOOD: Remove stuff that comes after the gender
     //TODO: Check for lines with double gender.
     class DictCcImporter : Importer {
@@ -30,6 +29,9 @@ namespace DatabaseManager {
 
             string[] split = line.Split('\t');
             try {
+                if(split.Length != 3) {
+                    throw new ImportParsingException("Invalid line: " + line);
+                }
                 if(split[2] == "noun") {
                     int openBrackets = 0;
                     int openCurlyBrackets = 0;
@@ -61,8 +63,8 @@ namespace DatabaseManager {
                                 --openCurlyBrackets;
                                 break;
                             default:
-                                if(openBrackets == 0 && openSquareBrackets == 0) {
-                                    if(openCurlyBrackets == 0) {
+                                if(openBrackets == 0 && openSquareBrackets == 0 && openCurlyBrackets < 2) {
+                                    if(openCurlyBrackets == 1) {
                                         sbGender.Append(c);
                                     } else {
                                         sbWord.Append(c);
@@ -73,7 +75,9 @@ namespace DatabaseManager {
                     }
                 }
             } catch(ImportParsingException ipe) {
-                MessageBox.Show(ipe.Message, "Parsing exception", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                ImportErrors.Add(ipe);
+                sbGender.Clear(); // invalidate
+                sbWord.Clear();
             }
             Item result;
             result.Gender = sbGender;

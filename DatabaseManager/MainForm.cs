@@ -136,6 +136,9 @@ namespace DatabaseManager {
             }
             if(openFileDialog.ShowDialog() == DialogResult.OK) {
                 bgwImportDictionary.RunWorkerAsync();
+                progressDialog.btnClose.Enabled = false;
+                progressDialog.lbxMessages.Items.Clear();
+                progressDialog.lbxMessages.Items.Add("Parsing file...");
                 progressDialog.ShowDialog(this);
                 loadTable("lemma");
             }
@@ -147,30 +150,40 @@ namespace DatabaseManager {
 
             SQLiteTransaction tran = conn.BeginTransaction();
 
-            int count = 0;
+            int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
             foreach(Importer.Item l in importer.Items()) {
                 cmd.Parameters.AddWithValue("@text", l.Word);
                 cmd.Parameters.AddWithValue("@gender", l.Gender);
                 cmd.ExecuteNonQuery();
                 ++count;
-                if(count % 100 == 0) {
+                if(count % 10000 == 0) {
                     tran.Commit();
                     tran = conn.BeginTransaction();
+                    bgwImportDictionary.ReportProgress(importer.ProgressPercentage,
+                        importer.ImportErrors.GetRange(errAlreadyShownCount, importer.ImportErrors.Count - errAlreadyShownCount));
+                    errAlreadyShownCount = importer.ImportErrors.Count;
                 }
-                bgwImportDictionary.ReportProgress(importer.ProgressPercentage);
             }
             tran.Commit();
+            bgwImportDictionary.ReportProgress(100);
 
             importer.Close();
         }
 
         private void bgwImportDictionary_ProgressChanged(object sender, ProgressChangedEventArgs e) {
             progressDialog.progressBar.Value = e.ProgressPercentage;
+            if(e.UserState != null) {
+                List<ImportParsingException> errors = (List<ImportParsingException>)e.UserState;
+                foreach(ImportParsingException ipe in errors) {
+                    progressDialog.lbxMessages.Items.Add(ipe.Message);
+                }
+            }
         }
 
         private void bgwImportDictionary_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
-            progressDialog.Close();
+            progressDialog.lbxMessages.Items.Add("Done.");
+            progressDialog.btnClose.Enabled = true;
         }
     }
 }
