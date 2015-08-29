@@ -43,6 +43,7 @@
             // lbxMessages
             // 
             this.lbxMessages.FormattingEnabled = true;
+            this.lbxMessages.HorizontalScrollbar = true;
             this.lbxMessages.Location = new System.Drawing.Point(29, 41);
             this.lbxMessages.Name = "lbxMessages";
             this.lbxMessages.Size = new System.Drawing.Size(226, 160);
