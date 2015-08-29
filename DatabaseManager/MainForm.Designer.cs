@@ -99,6 +99,7 @@
             this.importDictionaryToolStripMenuItem1.Name = "importDictionaryToolStripMenuItem1";
             this.importDictionaryToolStripMenuItem1.Size = new System.Drawing.Size(175, 22);
             this.importDictionaryToolStripMenuItem1.Text = "Import dictionary...";
+            this.importDictionaryToolStripMenuItem1.Click += new System.EventHandler(this.importDictionaryToolStripMenuItem1_Click);
             // 
             // dgvData
             // 

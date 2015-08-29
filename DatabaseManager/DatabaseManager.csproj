@@ -71,6 +71,8 @@
   <ItemGroup>
     <Compile Include="Cache.cs" />
     <Compile Include="DataProvider.cs" />
+    <Compile Include="DictCcImporter.cs" />
+    <Compile Include="Importer.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
