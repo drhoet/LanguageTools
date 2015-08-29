@@ -12,55 +12,46 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace DatabaseManager
-{
-    public partial class MainForm : Form
-    {
+namespace DatabaseManager {
+    public partial class MainForm : Form {
         private SQLiteConnection conn = null;
         private SQLiteDataAdapter dataAdapter = null;
         private SQLiteCommandBuilder commandBuilder = null;
         private DataTable table;
-        public MainForm()
-        {
+        private ProgressDialog progressDialog = new ProgressDialog();
+        public MainForm() {
             InitializeComponent();
             SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
             bool newDb = !File.Exists("default.db");
             connBuilder.DataSource = "default.db";
             connBuilder.Version = 3;
             loadDatabase(connBuilder.ToString());
-            if (newDb)
-            {
+            if(newDb) {
                 initializeDatabase();
             }
             loadTable("lemma");
         }
 
-        private void loadDatabase(string connectionString)
-        {
-            if(conn != null)
-            {
+        private void loadDatabase(string connectionString) {
+            if(conn != null) {
                 closeDatabase();
             }
             conn = new SQLiteConnection(connectionString);
             conn.Open();
         }
 
-        private void closeDatabase()
-        {
+        private void closeDatabase() {
             conn.Close();
         }
 
-        private void commitGuiChanges()
-        {
+        private void commitGuiChanges() {
             DataTable changes = table.GetChanges();
-            if (changes != null)
-            {
+            if(changes != null) {
                 dataAdapter.Update(changes);
             }
         }
 
-        private void loadTable(string tableName)
-        {
+        private void loadTable(string tableName) {
             /*DataProvider provider = new DataProvider(conn, tableName);
             memoryCache = new Cache(provider, 100);
             dgvData.Columns.Clear();
@@ -77,19 +68,15 @@ namespace DatabaseManager
             dgvData.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
         }
 
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
             Application.Exit();
         }
 
-        private void initializeNewDatabaseToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (commitChangesCancellable() == DialogResult.Cancel)
-            {
+        private void initializeNewDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
+            if(commitChangesCancellable() == DialogResult.Cancel) {
                 return;
             }
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
+            if(saveFileDialog.ShowDialog() == DialogResult.OK) {
                 SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
                 connBuilder.DataSource = saveFileDialog.FileName;
                 connBuilder.Version = 3;
@@ -99,16 +86,13 @@ namespace DatabaseManager
             }
         }
 
-        private void initializeDatabase()
-        {
+        private void initializeDatabase() {
             SQLiteCommand command = new SQLiteCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
             command.ExecuteNonQuery();
         }
 
-        private void openDatabaseToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
+        private void openDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
+            if(openFileDialog.ShowDialog() == DialogResult.OK) {
                 SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
                 connBuilder.DataSource = openFileDialog.FileName;
                 connBuilder.Version = 3;
@@ -117,8 +101,7 @@ namespace DatabaseManager
             }
         }
 
-        private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
-        {
+        private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
             //e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
         }
 
@@ -131,13 +114,10 @@ namespace DatabaseManager
         /// DialogResult.Cancel if the box was cancelled
         /// DialogResult.No if the user doesn't want to commit
         /// </returns>
-        private DialogResult commitChangesCancellable()
-        {
-            if (table.GetChanges() != null)
-            {
+        private DialogResult commitChangesCancellable() {
+            if(table.GetChanges() != null) {
                 DialogResult r = MessageBox.Show("There are unsaved changed. Do you want to commit them?", this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
-                if (r == DialogResult.Yes)
-                {
+                if(r == DialogResult.Yes) {
                     commitGuiChanges();
                 }
                 return r;
@@ -145,43 +125,52 @@ namespace DatabaseManager
             return DialogResult.OK;
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
             e.Cancel = commitChangesCancellable() == DialogResult.Cancel;
             closeDatabase();
         }
 
-        private void importDictionaryToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            if(commitChangesCancellable() == DialogResult.Cancel)
-            {
+        private void importDictionaryToolStripMenuItem1_Click(object sender, EventArgs e) {
+            if(commitChangesCancellable() == DialogResult.Cancel) {
                 return;
             }
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                SQLiteCommand cmd = new SQLiteCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
-                cmd.Prepare();
-
-                SQLiteTransaction tran = conn.BeginTransaction();
-
-                int count = 0;
-                Importer importer = new DictCcImporter(openFileDialog.FileName);
-                foreach(Importer.Item l in importer.Items()) {
-                    cmd.Parameters.AddWithValue("@text", l.Word);
-                    cmd.Parameters.AddWithValue("@gender", l.Gender);
-                    cmd.ExecuteNonQuery();
-                    ++count;
-                    if (count % 100 == 0)
-                    {
-                        tran.Commit();
-                        tran = conn.BeginTransaction();
-                    }
-                }
-                tran.Commit();
-
-                importer.Close();
+            if(openFileDialog.ShowDialog() == DialogResult.OK) {
+                bgwImportDictionary.RunWorkerAsync();
+                progressDialog.ShowDialog(this);
                 loadTable("lemma");
             }
+        }
+
+        private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
+            SQLiteCommand cmd = new SQLiteCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
+            cmd.Prepare();
+
+            SQLiteTransaction tran = conn.BeginTransaction();
+
+            int count = 0;
+            Importer importer = new DictCcImporter(openFileDialog.FileName);
+            foreach(Importer.Item l in importer.Items()) {
+                cmd.Parameters.AddWithValue("@text", l.Word);
+                cmd.Parameters.AddWithValue("@gender", l.Gender);
+                cmd.ExecuteNonQuery();
+                ++count;
+                if(count % 100 == 0) {
+                    tran.Commit();
+                    tran = conn.BeginTransaction();
+                }
+                bgwImportDictionary.ReportProgress(importer.ProgressPercentage);
+            }
+            tran.Commit();
+
+            importer.Close();
+        }
+
+        private void bgwImportDictionary_ProgressChanged(object sender, ProgressChangedEventArgs e) {
+            progressDialog.progressBar.Value = e.ProgressPercentage;
+        }
+
+        private void bgwImportDictionary_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
+            progressDialog.Close();
         }
     }
 }

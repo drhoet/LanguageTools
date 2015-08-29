@@ -39,6 +39,7 @@
             this.dgvData = new System.Windows.Forms.DataGridView();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.dsData = new System.Data.DataSet();
+            this.bgwImportDictionary = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvData)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dsData)).BeginInit();
@@ -116,6 +117,13 @@
             // 
             this.dsData.DataSetName = "NewDataSet";
             // 
+            // bgwImportDictionary
+            // 
+            this.bgwImportDictionary.WorkerReportsProgress = true;
+            this.bgwImportDictionary.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwImportDictionary_DoWork);
+            this.bgwImportDictionary.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bgwImportDictionary_ProgressChanged);
+            this.bgwImportDictionary.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwImportDictionary_RunWorkerCompleted);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -149,6 +157,7 @@
         private System.Windows.Forms.DataGridView dgvData;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Data.DataSet dsData;
+        private System.ComponentModel.BackgroundWorker bgwImportDictionary;
     }
 }
 

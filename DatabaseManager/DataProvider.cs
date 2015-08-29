@@ -8,28 +8,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseManager
-{
-    class DataProvider
-    {
+namespace DatabaseManager {
+    class DataProvider {
         private string tableName;
         private DbCommand command;
 
-        public DataProvider(DbConnection conn, string tableName)
-        {
+        public DataProvider(DbConnection conn, string tableName) {
             command = conn.CreateCommand();
             this.tableName = tableName;
         }
 
         private int rowCountValue = -1;
 
-        public int RowCount
-        {
-            get
-            {
+        public int RowCount {
+            get {
                 // Return the existing value if it has already been determined. 
-                if (rowCountValue != -1)
-                {
+                if(rowCountValue != -1) {
                     return rowCountValue;
                 }
 
@@ -42,13 +36,10 @@ namespace DatabaseManager
 
         private DataColumnCollection columnsValue;
 
-        public DataColumnCollection Columns
-        {
-            get
-            {
+        public DataColumnCollection Columns {
+            get {
                 // Return the existing value if it has already been determined. 
-                if (columnsValue != null)
-                {
+                if(columnsValue != null) {
                     return columnsValue;
                 }
 
@@ -66,13 +57,10 @@ namespace DatabaseManager
 
         private string commaSeparatedListOfColumnNamesValue = null;
 
-        private string CommaSeparatedListOfColumnNames
-        {
-            get
-            {
+        private string CommaSeparatedListOfColumnNames {
+            get {
                 // Return the existing value if it has already been determined. 
-                if (commaSeparatedListOfColumnNamesValue != null)
-                {
+                if(commaSeparatedListOfColumnNamesValue != null) {
                     return commaSeparatedListOfColumnNamesValue;
                 }
 
@@ -81,10 +69,8 @@ namespace DatabaseManager
                 System.Text.StringBuilder commaSeparatedColumnNames =
                     new System.Text.StringBuilder();
                 bool firstColumn = true;
-                foreach (DataColumn column in Columns)
-                {
-                    if (!firstColumn)
-                    {
+                foreach(DataColumn column in Columns) {
+                    if(!firstColumn) {
                         commaSeparatedColumnNames.Append(", ");
                     }
                     commaSeparatedColumnNames.Append(column.ColumnName);
@@ -100,8 +86,7 @@ namespace DatabaseManager
         // Declare variables to be reused by the SupplyPageOfData method. 
         private DbDataAdapter adapter = new SQLiteDataAdapter();
 
-        public DataTable SupplyPageOfData(int lowerPageBoundary, int rowsPerPage)
-        {
+        public DataTable SupplyPageOfData(int lowerPageBoundary, int rowsPerPage) {
             // Retrieve the specified number of rows from the database, starting 
             // with the row specified by the lowerPageBoundary parameter.
             command.CommandText = "select " + CommaSeparatedListOfColumnNames + " from " + tableName
