@@ -107,12 +107,14 @@
             this.dgvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvData.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvData.Location = new System.Drawing.Point(0, 24);
+            this.dgvData.MultiSelect = false;
             this.dgvData.Name = "dgvData";
             this.dgvData.Size = new System.Drawing.Size(832, 503);
             this.dgvData.TabIndex = 1;
             this.dgvData.VirtualMode = true;
             this.dgvData.CellValueNeeded += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValueNeeded);
             this.dgvData.CellValuePushed += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValuePushed);
+            this.dgvData.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgvData_RowsRemoved);
             // 
             // dsData
             // 

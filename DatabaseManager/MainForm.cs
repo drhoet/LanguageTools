@@ -17,10 +17,12 @@ namespace DatabaseManager {
     public partial class MainForm : Form {
         private SQLiteConnection conn = null;
         private Cache memoryCache;
+        private DataProvider provider;
         private ProgressDialog progressDialog = new ProgressDialog();
         private bool dbHasChanges = false;
         private SQLiteCommand insertCmd, updateCmd, deleteCmd;
         private SQLiteTransaction tran = null;
+        private bool updateDatabase = false;
 
         public MainForm() {
             InitializeComponent();
@@ -47,6 +49,7 @@ namespace DatabaseManager {
         private void closeDatabase() {
             tran.Rollback();
             conn.Close();
+            updateDatabase = false;
         }
 
         private void commitGuiChanges() {
@@ -56,15 +59,16 @@ namespace DatabaseManager {
         }
 
         private void loadTable(string tableName) {
-            DataProvider provider = new DataProvider(conn, tableName);
+            updateDatabase = false;
+            provider = new DataProvider(conn, tableName);
             memoryCache = new Cache(provider, 100);
-            dgvData.Columns.Clear();
             dgvData.VirtualMode = true;
+            dgvData.Columns.Clear();
             foreach(DataColumn column in provider.Columns)
             {
                 dgvData.Columns.Add(column.ColumnName, column.ColumnName);
             }
-            dgvData.RowCount = provider.RowCount;
+            dgvData.RowCount = provider.RowCount + 1;
 
             if(dgvData.Columns.Contains("text")) {
                 dgvData.Columns["text"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -76,6 +80,7 @@ namespace DatabaseManager {
             updateCmd.Prepare();
             deleteCmd = new SQLiteCommand("delete from lemma where id=@id", conn);
             deleteCmd.Prepare();
+            updateDatabase = true;
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -99,6 +104,8 @@ namespace DatabaseManager {
         private void initializeDatabase() {
             SQLiteCommand command = new SQLiteCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
             command.ExecuteNonQuery();
+            tran.Commit();
+            tran = conn.BeginTransaction();
         }
 
         private void openDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -112,9 +119,14 @@ namespace DatabaseManager {
         }
 
         private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
-            e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
-            if(e.RowIndex == 0)
-                Debug.WriteLine("CellValueNeeded for " + e.RowIndex + "," + e.ColumnIndex + " --> " + e.Value);
+            if(e.RowIndex == dgvData.RowCount - 2 && e.RowIndex >= provider.RowCount) {
+                return;
+            }
+            if(e.RowIndex == dgvData.RowCount - 1) {
+                e.Value = "";
+            } else {
+                e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
+            }
         }
 
         /// <summary>
@@ -190,27 +202,48 @@ namespace DatabaseManager {
             }
         }
 
+        private void dgvData_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e) {
+            if(!updateDatabase) {
+                return;
+            }
+            dbHasChanges = true;
+            deleteCmd.Parameters.AddWithValue("id", dgvData["id", e.RowIndex].Value);
+            deleteCmd.ExecuteNonQuery();
+            memoryCache.ReloadAll();
+        }
+
         private void bgwImportDictionary_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             progressDialog.lbxMessages.Items.Add("Done.");
             progressDialog.btnClose.Enabled = true;
         }
 
         private void dgvData_CellValuePushed(object sender, DataGridViewCellValueEventArgs e) {
-            if(e.RowIndex == 0)
-                Debug.WriteLine("CellValuePushed for " + e.RowIndex + "," + e.ColumnIndex + ": " + e.Value);
-            dbHasChanges = true;
-            for(int c = 0; c < dgvData.Columns.Count; ++c) {
-                if(c == e.ColumnIndex) {
-                    updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
-                } else {
-                    updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c));
-                }
+            if(!updateDatabase) {
+                return;
             }
-            updateCmd.ExecuteNonQuery();
-            memoryCache.ReloadRow(e.RowIndex);
-            if(e.RowIndex == 0)
-                Debug.WriteLine("CellValuePushed ended for " + e.RowIndex + "," + e.ColumnIndex + ": " + e.Value);
+            dbHasChanges = true;
+            if(e.RowIndex >= provider.RowCount) {
+                for(int c = 0; c < dgvData.Columns.Count; ++c) {
+                    if(c == e.ColumnIndex) {
+                        insertCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
+                    } else {
+                        insertCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, string.Empty);
+                        dgvData.InvalidateRow(e.RowIndex);
+                    }
+                }
+                insertCmd.ExecuteNonQuery();
+            } else {
+                for(int c = 0; c < dgvData.Columns.Count; ++c) {
+                    if(c == e.ColumnIndex) {
+                        updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
+                    } else {
+                        updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c));
+                    }
+                }
+                updateCmd.ExecuteNonQuery();
+            }
 
+            memoryCache.ReloadAll();
         }
     }
 }

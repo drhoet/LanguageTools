@@ -112,5 +112,11 @@ namespace DatabaseManager {
         public void ReloadRow(int rowIndex) {
             CacheRow(rowIndex);
         }
+
+        public void ReloadAll() {
+            foreach(DataPage page in cachePages) {
+                ReloadRow(page.LowestIndex);
+            }
+        }
     }
 }
