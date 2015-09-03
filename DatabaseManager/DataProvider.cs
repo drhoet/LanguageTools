@@ -90,7 +90,7 @@ namespace DatabaseManager {
             // Retrieve the specified number of rows from the database, starting 
             // with the row specified by the lowerPageBoundary parameter.
             command.CommandText = "select " + CommaSeparatedListOfColumnNames + " from " + tableName
-                + " limit " + rowsPerPage + ", " + lowerPageBoundary;
+                + " limit " + rowsPerPage + " offset " + lowerPageBoundary;
             adapter.SelectCommand = command;
 
             DataTable table = new DataTable();

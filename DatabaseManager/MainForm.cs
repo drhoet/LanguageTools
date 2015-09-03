@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,10 +16,12 @@ using System.Windows.Forms;
 namespace DatabaseManager {
     public partial class MainForm : Form {
         private SQLiteConnection conn = null;
-        private SQLiteDataAdapter dataAdapter = null;
-        private SQLiteCommandBuilder commandBuilder = null;
-        private DataTable table;
+        private Cache memoryCache;
         private ProgressDialog progressDialog = new ProgressDialog();
+        private bool dbHasChanges = false;
+        private SQLiteCommand insertCmd, updateCmd, deleteCmd;
+        private SQLiteTransaction tran = null;
+
         public MainForm() {
             InitializeComponent();
             SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
@@ -38,34 +41,41 @@ namespace DatabaseManager {
             }
             conn = new SQLiteConnection(connectionString);
             conn.Open();
+            tran = conn.BeginTransaction();
         }
 
         private void closeDatabase() {
+            tran.Rollback();
             conn.Close();
         }
 
         private void commitGuiChanges() {
-            DataTable changes = table.GetChanges();
-            if(changes != null) {
-                dataAdapter.Update(changes);
-            }
+            tran.Commit();
+            dbHasChanges = false;
+            tran = conn.BeginTransaction();
         }
 
         private void loadTable(string tableName) {
-            /*DataProvider provider = new DataProvider(conn, tableName);
+            DataProvider provider = new DataProvider(conn, tableName);
             memoryCache = new Cache(provider, 100);
             dgvData.Columns.Clear();
+            dgvData.VirtualMode = true;
             foreach(DataColumn column in provider.Columns)
             {
                 dgvData.Columns.Add(column.ColumnName, column.ColumnName);
             }
-            dgvData.RowCount = provider.RowCount;*/
-            dataAdapter = new SQLiteDataAdapter("select * from lemma", conn);
-            commandBuilder = new SQLiteCommandBuilder(dataAdapter);
-            table = new DataTable("lemma");
-            dataAdapter.Fill(table);
-            dgvData.DataSource = table;
-            dgvData.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dgvData.RowCount = provider.RowCount;
+
+            if(dgvData.Columns.Contains("text")) {
+                dgvData.Columns["text"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
+
+            insertCmd = new SQLiteCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
+            insertCmd.Prepare();
+            updateCmd = new SQLiteCommand("update lemma set text=@text, gender=@gender where id=@id", conn);
+            updateCmd.Prepare();
+            deleteCmd = new SQLiteCommand("delete from lemma where id=@id", conn);
+            deleteCmd.Prepare();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -102,7 +112,9 @@ namespace DatabaseManager {
         }
 
         private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
-            //e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
+            e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
+            if(e.RowIndex == 0)
+                Debug.WriteLine("CellValueNeeded for " + e.RowIndex + "," + e.ColumnIndex + " --> " + e.Value);
         }
 
         /// <summary>
@@ -115,7 +127,7 @@ namespace DatabaseManager {
         /// DialogResult.No if the user doesn't want to commit
         /// </returns>
         private DialogResult commitChangesCancellable() {
-            if(table.GetChanges() != null) {
+            if(dbHasChanges) {
                 DialogResult r = MessageBox.Show("There are unsaved changed. Do you want to commit them?", this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
                 if(r == DialogResult.Yes) {
                     commitGuiChanges();
@@ -145,27 +157,24 @@ namespace DatabaseManager {
         }
 
         private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
-            SQLiteCommand cmd = new SQLiteCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
-            cmd.Prepare();
-
-            SQLiteTransaction tran = conn.BeginTransaction();
+            SQLiteTransaction importTran = conn.BeginTransaction();
 
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
             foreach(Importer.Item l in importer.Items()) {
-                cmd.Parameters.AddWithValue("@text", l.Word);
-                cmd.Parameters.AddWithValue("@gender", l.Gender);
-                cmd.ExecuteNonQuery();
+                insertCmd.Parameters.AddWithValue("@text", l.Word);
+                insertCmd.Parameters.AddWithValue("@gender", l.Gender);
+                insertCmd.ExecuteNonQuery();
                 ++count;
                 if(count % 10000 == 0) {
-                    tran.Commit();
-                    tran = conn.BeginTransaction();
+                    importTran.Commit();
+                    importTran = conn.BeginTransaction();
                     bgwImportDictionary.ReportProgress(importer.ProgressPercentage,
                         importer.ImportErrors.GetRange(errAlreadyShownCount, importer.ImportErrors.Count - errAlreadyShownCount));
                     errAlreadyShownCount = importer.ImportErrors.Count;
                 }
             }
-            tran.Commit();
+            importTran.Commit();
             bgwImportDictionary.ReportProgress(100);
 
             importer.Close();
@@ -184,6 +193,24 @@ namespace DatabaseManager {
         private void bgwImportDictionary_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             progressDialog.lbxMessages.Items.Add("Done.");
             progressDialog.btnClose.Enabled = true;
+        }
+
+        private void dgvData_CellValuePushed(object sender, DataGridViewCellValueEventArgs e) {
+            if(e.RowIndex == 0)
+                Debug.WriteLine("CellValuePushed for " + e.RowIndex + "," + e.ColumnIndex + ": " + e.Value);
+            dbHasChanges = true;
+            for(int c = 0; c < dgvData.Columns.Count; ++c) {
+                if(c == e.ColumnIndex) {
+                    updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
+                } else {
+                    updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c));
+                }
+            }
+            updateCmd.ExecuteNonQuery();
+            memoryCache.ReloadRow(e.RowIndex);
+            if(e.RowIndex == 0)
+                Debug.WriteLine("CellValuePushed ended for " + e.RowIndex + "," + e.ColumnIndex + ": " + e.Value);
+
         }
     }
 }

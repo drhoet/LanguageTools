@@ -112,6 +112,7 @@
             this.dgvData.TabIndex = 1;
             this.dgvData.VirtualMode = true;
             this.dgvData.CellValueNeeded += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValueNeeded);
+            this.dgvData.CellValuePushed += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValuePushed);
             // 
             // dsData
             // 
