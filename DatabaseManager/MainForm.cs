@@ -15,13 +15,13 @@ using System.Windows.Forms;
 
 namespace DatabaseManager {
     public partial class MainForm : Form {
-        private SQLiteConnection conn = null;
+        private DbConnection conn = null;
         private Cache memoryCache;
         private DataProvider provider;
         private ProgressDialog progressDialog = new ProgressDialog();
         private bool dbHasChanges = false;
-        private SQLiteCommand insertCmd, updateCmd, deleteCmd;
-        private SQLiteTransaction tran = null;
+        private DbCommand insertCmd, updateCmd, deleteCmd;
+        private DbTransaction tran = null;
         private bool updateDatabase = false;
 
         public MainForm() {
@@ -74,11 +74,11 @@ namespace DatabaseManager {
                 dgvData.Columns["text"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             }
 
-            insertCmd = new SQLiteCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
+            insertCmd = createCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
             insertCmd.Prepare();
-            updateCmd = new SQLiteCommand("update lemma set text=@text, gender=@gender where id=@id", conn);
+            updateCmd = createCommand("update lemma set text=@text, gender=@gender where id=@id", conn);
             updateCmd.Prepare();
-            deleteCmd = new SQLiteCommand("delete from lemma where id=@id", conn);
+            deleteCmd = createCommand("delete from lemma where id=@id", conn);
             deleteCmd.Prepare();
             updateDatabase = true;
         }
@@ -101,8 +101,21 @@ namespace DatabaseManager {
             }
         }
 
+        private DbCommand createCommand(string commandText, DbConnection conn) {
+            DbCommand result = conn.CreateCommand();
+            result.CommandText = commandText;
+            return result;
+        }
+
+        private DbParameter createParameter(string name, object value, DbCommand command) {
+            DbParameter param = command.CreateParameter();
+            param.ParameterName = name;
+            param.Value = value;
+            return param;
+        }
+
         private void initializeDatabase() {
-            SQLiteCommand command = new SQLiteCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
+            DbCommand command = createCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
             command.ExecuteNonQuery();
             tran.Commit();
             tran = conn.BeginTransaction();
@@ -169,13 +182,13 @@ namespace DatabaseManager {
         }
 
         private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
-            SQLiteTransaction importTran = conn.BeginTransaction();
+            DbTransaction importTran = conn.BeginTransaction();
 
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
             foreach(Importer.Item l in importer.Items()) {
-                insertCmd.Parameters.AddWithValue("@text", l.Word);
-                insertCmd.Parameters.AddWithValue("@gender", l.Gender);
+                insertCmd.Parameters.Add(createParameter("@text", l.Word, insertCmd));
+                insertCmd.Parameters.Add(createParameter("@gender", l.Gender, insertCmd));
                 insertCmd.ExecuteNonQuery();
                 ++count;
                 if(count % 10000 == 0) {
@@ -207,7 +220,7 @@ namespace DatabaseManager {
                 return;
             }
             dbHasChanges = true;
-            deleteCmd.Parameters.AddWithValue("id", dgvData["id", e.RowIndex].Value);
+            deleteCmd.Parameters.Add(createParameter("id", dgvData["id", e.RowIndex].Value, deleteCmd));
             deleteCmd.ExecuteNonQuery();
             memoryCache.ReloadAll();
         }
@@ -220,7 +233,7 @@ namespace DatabaseManager {
         private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
             dbHasChanges = true;
             dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
-            SQLiteCommand cmd = conn.CreateCommand();
+            DbCommand cmd = conn.CreateCommand();
             cmd.CommandText = "delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)";
             int nbRows = cmd.ExecuteNonQuery();
             MessageBox.Show(nbRows + " duplicates removed");
@@ -237,9 +250,9 @@ namespace DatabaseManager {
             if(e.RowIndex >= provider.RowCount) {
                 for(int c = 0; c < dgvData.Columns.Count; ++c) {
                     if(c == e.ColumnIndex) {
-                        insertCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
+                        insertCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, e.Value, insertCmd));
                     } else {
-                        insertCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, string.Empty);
+                        insertCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, string.Empty, insertCmd));
                         dgvData.InvalidateRow(e.RowIndex);
                     }
                 }
@@ -247,9 +260,9 @@ namespace DatabaseManager {
             } else {
                 for(int c = 0; c < dgvData.Columns.Count; ++c) {
                     if(c == e.ColumnIndex) {
-                        updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, e.Value);
+                        updateCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, e.Value, updateCmd));
                     } else {
-                        updateCmd.Parameters.AddWithValue(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c));
+                        updateCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c), updateCmd));
                     }
                 }
                 updateCmd.ExecuteNonQuery();
