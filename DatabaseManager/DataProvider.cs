@@ -25,7 +25,6 @@ namespace DatabaseManager {
                 // Retrieve the row count from the database.
                 command.CommandText = "SELECT COUNT(*) FROM " + tableName;
                 rowCountValue = Convert.ToInt32(command.ExecuteScalar());
-                System.Diagnostics.Debug.WriteLine("Getting the count");
                 return rowCountValue;
             }
         }

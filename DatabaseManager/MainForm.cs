@@ -217,6 +217,18 @@ namespace DatabaseManager {
             progressDialog.btnClose.Enabled = true;
         }
 
+        private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
+            dbHasChanges = true;
+            dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
+            SQLiteCommand cmd = conn.CreateCommand();
+            cmd.CommandText = "delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)";
+            int nbRows = cmd.ExecuteNonQuery();
+            MessageBox.Show(nbRows + " duplicates removed");
+            memoryCache.ReloadAll();
+            dgvData.Invalidate();
+        }
+
+
         private void dgvData_CellValuePushed(object sender, DataGridViewCellValueEventArgs e) {
             if(!updateDatabase) {
                 return;

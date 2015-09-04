@@ -40,6 +40,7 @@
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.dsData = new System.Data.DataSet();
             this.bgwImportDictionary = new System.ComponentModel.BackgroundWorker();
+            this.removeDuplicatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvData)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dsData)).BeginInit();
@@ -90,7 +91,8 @@
             // dataToolStripMenuItem
             // 
             this.dataToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importDictionaryToolStripMenuItem1});
+            this.importDictionaryToolStripMenuItem1,
+            this.removeDuplicatesToolStripMenuItem});
             this.dataToolStripMenuItem.Name = "dataToolStripMenuItem";
             this.dataToolStripMenuItem.Size = new System.Drawing.Size(43, 20);
             this.dataToolStripMenuItem.Text = "Data";
@@ -127,6 +129,13 @@
             this.bgwImportDictionary.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bgwImportDictionary_ProgressChanged);
             this.bgwImportDictionary.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwImportDictionary_RunWorkerCompleted);
             // 
+            // removeDuplicatesToolStripMenuItem
+            // 
+            this.removeDuplicatesToolStripMenuItem.Name = "removeDuplicatesToolStripMenuItem";
+            this.removeDuplicatesToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
+            this.removeDuplicatesToolStripMenuItem.Text = "Remove duplicates";
+            this.removeDuplicatesToolStripMenuItem.Click += new System.EventHandler(this.removeDuplicatesToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -161,6 +170,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Data.DataSet dsData;
         private System.ComponentModel.BackgroundWorker bgwImportDictionary;
+        private System.Windows.Forms.ToolStripMenuItem removeDuplicatesToolStripMenuItem;
     }
 }
 
