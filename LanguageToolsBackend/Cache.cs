@@ -5,61 +5,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseManager {
-    class Cache {
-
-        // Represents one page of data.   
+namespace LanguageTools.Backend {
+    public class Cache<T> {
+        // Represents one page of data.
         public struct DataPage {
-            private DataTable Table { get; set; }
+            private List<T> Items { get; set; }
 
-            public DataPage(DataTable table, int rowIndex) {
-                Table = table;
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name="items">The items in the page</param>
+            /// <param name="rowIndex">The rowid of the first item in the page. NOT THE PAGE INDEX</param>
+            public DataPage(List<T> items, int rowIndex) {
+                Items = items;
                 LowestIndex = rowIndex;
-                HighestIndex = rowIndex + Table.Rows.Count - 1;
+                HighestIndex = rowIndex + Items.Count - 1;
             }
 
             // Returns whether the given rowIndex is in this page.
             public bool ContainsRow(int rowIndex) {
-                return rowIndex <= HighestIndex &&
-                    rowIndex >= LowestIndex;
+                return rowIndex <= HighestIndex && rowIndex >= LowestIndex;
             }
 
             // Returns the value at the row/column indexes in this page
-            public object GetValue(int rowIndex, int columnIndex) {
+            public T GetValue(int rowIndex) {
                 if(!ContainsRow(rowIndex)) {
                     throw new ArgumentException("The row " + rowIndex + " is not in this page.");
                 }
-                return Table.Rows[rowIndex - LowestIndex][columnIndex];
+                return Items[rowIndex - LowestIndex];
             }
-            
+
             public int LowestIndex { get; private set; }
             public int HighestIndex { get; private set; }
         }
 
         private DataPage[] cachePages;
-        private DataProvider dataSupply;
-        private int RowsPerPage;
+        private IPaginated<T> dataSupply;
+        private int BlockSize;
 
-        public Cache(DataProvider dataSupplier, int rowsPerPage) {
+        public Cache(IPaginated<T> dataSupplier, int blockSize) {
             dataSupply = dataSupplier;
-            RowsPerPage = rowsPerPage;
+            BlockSize = blockSize;
             LoadFirstTwoPages();
         }
-    
-        public object RetrieveElement(int rowIndex, int columnIndex) {
-            int pageIndex = GetPageContainingRow(rowIndex);
-            if(pageIndex < 0) {
+
+        public T RetrieveElement(int rowIndex) {
+            int blockIndex = GetPageContainingRow(rowIndex);
+            if(blockIndex < 0) {
                 CacheRow(rowIndex);
-                pageIndex = GetPageContainingRow(rowIndex);
+                blockIndex = GetPageContainingRow(rowIndex);
             }
-            return cachePages[pageIndex].GetValue(rowIndex, columnIndex);
+            return cachePages[blockIndex].GetValue(rowIndex);
         }
 
         // loads and caches the row with given index
         private void CacheRow(int rowIndex) {
-            int pageIndex = GetOptimalPageIndex(rowIndex);
-            int pageLowerBoundary = (rowIndex / RowsPerPage) * RowsPerPage;
-            cachePages[pageIndex] = new DataPage(dataSupply.SupplyPageOfData(pageLowerBoundary, RowsPerPage), pageLowerBoundary);
+            int blockIndex = GetOptimalPageIndex(rowIndex);
+            int pageIndex = Convert.ToInt32(Math.Floor((double)rowIndex / BlockSize));
+            cachePages[blockIndex] = new DataPage(dataSupply.SupplyPageOfData(pageIndex, BlockSize), pageIndex * BlockSize);
         }
 
         // Finds the page index where a page containing the row with given rowIndex should be put.
@@ -67,8 +70,8 @@ namespace DatabaseManager {
         // If there is a page containing this rowIndex, the index of this page is returned
         // Otherwise, the page furthest away from the rowIndex is returned.
         private int GetOptimalPageIndex(int rowIndex) {
-            int pageIndex = GetPageContainingRow(rowIndex);
-            if(pageIndex < 0) {
+            int blockIndex = GetPageContainingRow(rowIndex);
+            if(blockIndex < 0) {
                 int victim = 0;
                 int victimDistance = GetDistanceToPage(rowIndex, cachePages[0]);
                 for(int i = 1; i < cachePages.Count(); ++i) {
@@ -80,7 +83,7 @@ namespace DatabaseManager {
                 }
                 return victim;
             } else {
-                return pageIndex;
+                return blockIndex;
             }
         }
 
@@ -105,8 +108,8 @@ namespace DatabaseManager {
 
         private void LoadFirstTwoPages() {
             cachePages = new DataPage[]{
-            new DataPage(dataSupply.SupplyPageOfData(0, RowsPerPage), 0),
-            new DataPage(dataSupply.SupplyPageOfData(RowsPerPage, RowsPerPage), RowsPerPage)};
+            new DataPage(dataSupply.SupplyPageOfData(0, BlockSize), 0),
+            new DataPage(dataSupply.SupplyPageOfData(1, BlockSize), BlockSize)};
         }
 
         public void ReloadRow(int rowIndex) {

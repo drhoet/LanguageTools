@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LanguageTools.Backend;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,12 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DatabaseManager {
-    abstract class Importer {
-        public struct Item {
-            public StringBuilder Word;
-            public StringBuilder Gender;
-        }
-
+    internal abstract class Importer {
         protected long streamLength;
         protected FileStream stream;
         public Importer(string fileName) {
@@ -20,7 +16,7 @@ namespace DatabaseManager {
             streamLength = fi.Length;
         }
 
-        public abstract IEnumerable<Item> Items();
+        public abstract IEnumerable<LemmaRepository.BulkItem> Items();
 
         public int ProgressPercentage {
             get {

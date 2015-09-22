@@ -36,11 +36,14 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importDictionaryToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeDuplicatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dgvData = new System.Windows.Forms.DataGridView();
+            this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.text = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.gender = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.dsData = new System.Data.DataSet();
             this.bgwImportDictionary = new System.ComponentModel.BackgroundWorker();
-            this.removeDuplicatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvData)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dsData)).BeginInit();
@@ -104,19 +107,48 @@
             this.importDictionaryToolStripMenuItem1.Text = "Import dictionary...";
             this.importDictionaryToolStripMenuItem1.Click += new System.EventHandler(this.importDictionaryToolStripMenuItem1_Click);
             // 
+            // removeDuplicatesToolStripMenuItem
+            // 
+            this.removeDuplicatesToolStripMenuItem.Name = "removeDuplicatesToolStripMenuItem";
+            this.removeDuplicatesToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
+            this.removeDuplicatesToolStripMenuItem.Text = "Remove duplicates";
+            this.removeDuplicatesToolStripMenuItem.Click += new System.EventHandler(this.removeDuplicatesToolStripMenuItem_Click);
+            // 
             // dgvData
             // 
             this.dgvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvData.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.id,
+            this.text,
+            this.gender});
             this.dgvData.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvData.Location = new System.Drawing.Point(0, 24);
             this.dgvData.MultiSelect = false;
             this.dgvData.Name = "dgvData";
+            this.dgvData.ShowCellToolTips = false;
             this.dgvData.Size = new System.Drawing.Size(832, 503);
             this.dgvData.TabIndex = 1;
             this.dgvData.VirtualMode = true;
             this.dgvData.CellValueNeeded += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValueNeeded);
             this.dgvData.CellValuePushed += new System.Windows.Forms.DataGridViewCellValueEventHandler(this.dgvData_CellValuePushed);
             this.dgvData.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgvData_RowsRemoved);
+            // 
+            // id
+            // 
+            this.id.HeaderText = "Identifier";
+            this.id.Name = "id";
+            this.id.ReadOnly = true;
+            // 
+            // text
+            // 
+            this.text.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.text.HeaderText = "Text";
+            this.text.Name = "text";
+            // 
+            // gender
+            // 
+            this.gender.HeaderText = "Gender";
+            this.gender.Name = "gender";
             // 
             // dsData
             // 
@@ -128,13 +160,6 @@
             this.bgwImportDictionary.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgwImportDictionary_DoWork);
             this.bgwImportDictionary.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bgwImportDictionary_ProgressChanged);
             this.bgwImportDictionary.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgwImportDictionary_RunWorkerCompleted);
-            // 
-            // removeDuplicatesToolStripMenuItem
-            // 
-            this.removeDuplicatesToolStripMenuItem.Name = "removeDuplicatesToolStripMenuItem";
-            this.removeDuplicatesToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.removeDuplicatesToolStripMenuItem.Text = "Remove duplicates";
-            this.removeDuplicatesToolStripMenuItem.Click += new System.EventHandler(this.removeDuplicatesToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -171,6 +196,9 @@
         private System.Data.DataSet dsData;
         private System.ComponentModel.BackgroundWorker bgwImportDictionary;
         private System.Windows.Forms.ToolStripMenuItem removeDuplicatesToolStripMenuItem;
+        private System.Windows.Forms.DataGridViewTextBoxColumn id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn text;
+        private System.Windows.Forms.DataGridViewComboBoxColumn gender;
     }
 }
 

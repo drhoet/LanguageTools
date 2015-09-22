@@ -69,8 +69,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache.cs" />
-    <Compile Include="DataProvider.cs" />
     <Compile Include="DictCcImporter.cs" />
     <Compile Include="Importer.cs" />
     <Compile Include="ImportParsingException.cs" />
@@ -116,6 +114,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LanguageToolsBackend\LanguageToolsBackend.csproj">
+      <Project>{c86a2df0-865e-4851-abbb-8523abf494eb}</Project>
+      <Name>LanguageToolsBackend</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.98.1\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.98.1\build\net451\System.Data.SQLite.Core.targets')" />

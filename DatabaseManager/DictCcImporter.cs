@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LanguageTools.Backend;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Windows.Forms;
 namespace DatabaseManager {
     //TOOD: Remove stuff that comes after the gender
     //TODO: Check for lines with double gender.
-    class DictCcImporter : Importer {
+    internal class DictCcImporter : Importer {
         protected StreamReader reader;
         private StringBuilder sbWord = new StringBuilder();
         private StringBuilder sbGender = new StringBuilder();
@@ -23,7 +24,7 @@ namespace DatabaseManager {
             base.Close();
         }
 
-        public Item parseLine(string line) {
+        public LemmaRepository.BulkItem parseLine(string line) {
             sbWord.Clear();
             sbGender.Clear();
 
@@ -79,17 +80,17 @@ namespace DatabaseManager {
                 sbGender.Clear(); // invalidate
                 sbWord.Clear();
             }
-            Item result;
-            result.Gender = sbGender;
-            result.Word = sbWord;
+            LemmaRepository.BulkItem result;
+            result.Gender = sbGender.ToString();
+            result.Word = sbWord.ToString();
             return result;
         }
 
-        public override IEnumerable<Item> Items() {
+        public override IEnumerable<LemmaRepository.BulkItem> Items() {
             string line;
             while((line = reader.ReadLine()) != null) {
                 if(line != "" && !line.StartsWith("#")) {
-                    Item result = parseLine(line);
+                    LemmaRepository.BulkItem result = parseLine(line);
                     if(result.Gender.Length > 0) {
                         yield return result;
                     }

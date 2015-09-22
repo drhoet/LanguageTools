@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LanguageTools.Backend;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,191 +16,42 @@ using System.Windows.Forms;
 
 namespace DatabaseManager {
     public partial class MainForm : Form {
-        private DbConnection conn = null;
-        private Cache memoryCache;
-        private DataProvider provider;
-        private ProgressDialog progressDialog = new ProgressDialog();
         private bool dbHasChanges = false;
-        private DbCommand insertCmd, updateCmd, deleteCmd;
-        private DbTransaction tran = null;
+        private Cache<Lemma> memoryCache;
+        private ProgressDialog progressDialog = new ProgressDialog();
+        private LemmaDatabase db;
+        private LemmaRepository repo;
         private bool updateDatabase = false;
 
         public MainForm() {
             InitializeComponent();
-            SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
-            bool newDb = !File.Exists("default.db");
-            connBuilder.DataSource = "default.db";
-            connBuilder.Version = 3;
-            loadDatabase(connBuilder.ToString());
-            if(newDb) {
-                initializeDatabase();
-            }
-            loadTable("lemma");
-        }
-
-        private void loadDatabase(string connectionString) {
-            if(conn != null) {
-                closeDatabase();
-            }
-            conn = new SQLiteConnection(connectionString);
-            conn.Open();
-            tran = conn.BeginTransaction();
-        }
-
-        private void closeDatabase() {
-            tran.Rollback();
-            conn.Close();
-            updateDatabase = false;
-        }
-
-        private void commitGuiChanges() {
-            tran.Commit();
-            dbHasChanges = false;
-            tran = conn.BeginTransaction();
-        }
-
-        private void loadTable(string tableName) {
-            updateDatabase = false;
-            provider = new DataProvider(conn, tableName);
-            memoryCache = new Cache(provider, 100);
-            dgvData.VirtualMode = true;
-            dgvData.Columns.Clear();
-            foreach(DataColumn column in provider.Columns)
-            {
-                dgvData.Columns.Add(column.ColumnName, column.ColumnName);
-            }
-            dgvData.RowCount = provider.RowCount + 1;
-
-            if(dgvData.Columns.Contains("text")) {
-                dgvData.Columns["text"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            foreach(Lemma.WordGender g in System.Enum.GetValues(typeof(Lemma.WordGender))) {
+                this.gender.Items.Add(g);
+                this.gender.ValueType = typeof(Lemma.WordGender);
             }
 
-            insertCmd = createCommand("insert into lemma(text, gender) values(@text, @gender)", conn);
-            insertCmd.Prepare();
-            updateCmd = createCommand("update lemma set text=@text, gender=@gender where id=@id", conn);
-            updateCmd.Prepare();
-            deleteCmd = createCommand("delete from lemma where id=@id", conn);
-            deleteCmd.Prepare();
-            updateDatabase = true;
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
-            Application.Exit();
-        }
-
-        private void initializeNewDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
-            if(commitChangesCancellable() == DialogResult.Cancel) {
-                return;
-            }
-            if(saveFileDialog.ShowDialog() == DialogResult.OK) {
-                SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
-                connBuilder.DataSource = saveFileDialog.FileName;
-                connBuilder.Version = 3;
-                loadDatabase(connBuilder.ToString());
-                initializeDatabase();
-                loadTable("lemma");
-            }
-        }
-
-        private DbCommand createCommand(string commandText, DbConnection conn) {
-            DbCommand result = conn.CreateCommand();
-            result.CommandText = commandText;
-            return result;
-        }
-
-        private DbParameter createParameter(string name, object value, DbCommand command) {
-            DbParameter param = command.CreateParameter();
-            param.ParameterName = name;
-            param.Value = value;
-            return param;
-        }
-
-        private void initializeDatabase() {
-            DbCommand command = createCommand("create table lemma (id integer primary key not null, text varchar(100), gender varchar(2))", conn);
-            command.ExecuteNonQuery();
-            tran.Commit();
-            tran = conn.BeginTransaction();
-        }
-
-        private void openDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
-            if(openFileDialog.ShowDialog() == DialogResult.OK) {
-                SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
-                connBuilder.DataSource = openFileDialog.FileName;
-                connBuilder.Version = 3;
-                loadDatabase(connBuilder.ToString());
-                loadTable("lemma");
-            }
-        }
-
-        private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
-            if(e.RowIndex == dgvData.RowCount - 2 && e.RowIndex >= provider.RowCount) {
-                return;
-            }
-            if(e.RowIndex == dgvData.RowCount - 1) {
-                e.Value = "";
-            } else {
-                e.Value = memoryCache.RetrieveElement(e.RowIndex, e.ColumnIndex);
-            }
-        }
-
-        /// <summary>
-        /// Asks for commit, if YES: commits, otherwise doesn't commit.
-        /// </summary>
-        /// <returns>
-        /// DialogResult.OK if there was nothing to commit.
-        /// DialogResult.Yes if changes were committed
-        /// DialogResult.Cancel if the box was cancelled
-        /// DialogResult.No if the user doesn't want to commit
-        /// </returns>
-        private DialogResult commitChangesCancellable() {
-            if(dbHasChanges) {
-                DialogResult r = MessageBox.Show("There are unsaved changed. Do you want to commit them?", this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
-                if(r == DialogResult.Yes) {
-                    commitGuiChanges();
-                }
-                return r;
-            }
-            return DialogResult.OK;
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
-            e.Cancel = commitChangesCancellable() == DialogResult.Cancel;
-            closeDatabase();
-        }
-
-        private void importDictionaryToolStripMenuItem1_Click(object sender, EventArgs e) {
-            if(commitChangesCancellable() == DialogResult.Cancel) {
-                return;
-            }
-            if(openFileDialog.ShowDialog() == DialogResult.OK) {
-                bgwImportDictionary.RunWorkerAsync();
-                progressDialog.btnClose.Enabled = false;
-                progressDialog.lbxMessages.Items.Clear();
-                progressDialog.lbxMessages.Items.Add("Parsing file...");
-                progressDialog.ShowDialog(this);
-                loadTable("lemma");
-            }
+            LoadDatabase("default.db");
         }
 
         private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
-            DbTransaction importTran = conn.BeginTransaction();
-
+            db.OpenChangeSet();
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
-            foreach(Importer.Item l in importer.Items()) {
-                insertCmd.Parameters.Add(createParameter("@text", l.Word, insertCmd));
-                insertCmd.Parameters.Add(createParameter("@gender", l.Gender, insertCmd));
-                insertCmd.ExecuteNonQuery();
+            List<LemmaRepository.BulkItem> items = new List<LemmaRepository.BulkItem>();
+            foreach(LemmaRepository.BulkItem l in importer.Items()) {
+                items.Add(l);
                 ++count;
                 if(count % 10000 == 0) {
-                    importTran.Commit();
-                    importTran = conn.BeginTransaction();
+                    repo.AddBulk(items);
+                    db.CommitChangeSet();
+                    db.OpenChangeSet();
                     bgwImportDictionary.ReportProgress(importer.ProgressPercentage,
                         importer.ImportErrors.GetRange(errAlreadyShownCount, importer.ImportErrors.Count - errAlreadyShownCount));
                     errAlreadyShownCount = importer.ImportErrors.Count;
+                    items.Clear();
                 }
             }
-            importTran.Commit();
+            db.CommitChangeSet();
             bgwImportDictionary.ReportProgress(100);
 
             importer.Close();
@@ -215,60 +67,157 @@ namespace DatabaseManager {
             }
         }
 
-        private void dgvData_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e) {
-            if(!updateDatabase) {
-                return;
-            }
-            dbHasChanges = true;
-            deleteCmd.Parameters.Add(createParameter("id", dgvData["id", e.RowIndex].Value, deleteCmd));
-            deleteCmd.ExecuteNonQuery();
-            memoryCache.ReloadAll();
-        }
-
         private void bgwImportDictionary_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             progressDialog.lbxMessages.Items.Add("Done.");
             progressDialog.btnClose.Enabled = true;
         }
 
-        private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
-            dbHasChanges = true;
-            dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
-            DbCommand cmd = conn.CreateCommand();
-            cmd.CommandText = "delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)";
-            int nbRows = cmd.ExecuteNonQuery();
-            MessageBox.Show(nbRows + " duplicates removed");
-            memoryCache.ReloadAll();
-            dgvData.Invalidate();
+        /// <summary>
+        /// Asks for commit, if YES: commits, otherwise doesn't commit.
+        /// </summary>
+        /// <returns>
+        /// DialogResult.OK if there was nothing to commit.
+        /// DialogResult.Yes if changes were committed
+        /// DialogResult.Cancel if the box was cancelled
+        /// DialogResult.No if the user doesn't want to commit
+        /// </returns>
+        private DialogResult CommitChangesCancellable() {
+            if(dbHasChanges) {
+                DialogResult r = MessageBox.Show("There are unsaved changed. Do you want to commit them?", this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+                if(r == DialogResult.Yes) {
+                    db.CommitChangeSet();
+                    dbHasChanges = false;
+                    db.OpenChangeSet();
+                }
+                return r;
+            }
+            return DialogResult.OK;
         }
 
+        private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
+            if(e.RowIndex == dgvData.RowCount - 2 && e.RowIndex >= repo.Count) {
+                return;
+            }
+            if(e.RowIndex == dgvData.RowCount - 1) {
+                e.Value = null;
+            } else {
+                Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+                switch(e.ColumnIndex) {
+                    case 0: e.Value = l.Id; break;
+                    case 1: e.Value = l.Text; break;
+                    case 2: e.Value = l.Gender; break;
+                    default: e.Value = null; break;
+                }
+            }
+        }
 
         private void dgvData_CellValuePushed(object sender, DataGridViewCellValueEventArgs e) {
             if(!updateDatabase) {
                 return;
             }
             dbHasChanges = true;
-            if(e.RowIndex >= provider.RowCount) {
-                for(int c = 0; c < dgvData.Columns.Count; ++c) {
-                    if(c == e.ColumnIndex) {
-                        insertCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, e.Value, insertCmd));
-                    } else {
-                        insertCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, string.Empty, insertCmd));
-                        dgvData.InvalidateRow(e.RowIndex);
-                    }
-                }
-                insertCmd.ExecuteNonQuery();
+            if(e.RowIndex >= repo.Count) {
+                Lemma l = new Lemma();
+                SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
+                repo.Add(l);
             } else {
-                for(int c = 0; c < dgvData.Columns.Count; ++c) {
-                    if(c == e.ColumnIndex) {
-                        updateCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, e.Value, updateCmd));
-                    } else {
-                        updateCmd.Parameters.Add(createParameter(dgvData.Columns[c].Name, memoryCache.RetrieveElement(e.RowIndex, c), updateCmd));
-                    }
-                }
-                updateCmd.ExecuteNonQuery();
+                Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+                SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
+                repo.Update(l);
             }
+            dbHasChanges = true;
+        }
 
+        private void SetLemmaColumnValue(Lemma l, int columnIndex, object value) {
+            switch(columnIndex) {
+                case 1: l.Text = Convert.ToString(value); break;
+                case 2: l.Gender = (Lemma.WordGender)value; break;
+                default: throw new ArgumentException(string.Format("Cannot set column {0} to value {1}", columnIndex, value));
+            }
+        }
+
+        private void dgvData_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e) {
+            if(!updateDatabase) {
+                return;
+            }
+            dbHasChanges = true;
+
+            repo.RemoveById(Convert.ToInt32(dgvData["id", e.RowIndex].Value));
             memoryCache.ReloadAll();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
+            Application.Exit();
+        }
+
+        private void importDictionaryToolStripMenuItem1_Click(object sender, EventArgs e) {
+            if(CommitChangesCancellable() == DialogResult.Cancel) {
+                return;
+            }
+            db.RollBackChangeSet();
+            if(openFileDialog.ShowDialog() == DialogResult.OK) {
+                bgwImportDictionary.RunWorkerAsync();
+                progressDialog.btnClose.Enabled = false;
+                progressDialog.lbxMessages.Items.Clear();
+                progressDialog.lbxMessages.Items.Add("Parsing file...");
+                progressDialog.ShowDialog(this);
+                RefreshGridView();
+            }
+            db.OpenChangeSet();
+        }
+
+        private void LoadDatabase(string fileName) {
+            updateDatabase = false;
+            if(db != null) {
+                db.CloseDatabase();
+            }
+            SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
+            connBuilder.DataSource = fileName;
+            connBuilder.Version = 3;
+            db = new LemmaDatabase(connBuilder.ToString());
+            db.OpenChangeSet();
+            repo = new LemmaRepository(db);
+            RefreshGridView();
+            updateDatabase = true;
+        }
+
+        private void RefreshGridView() {
+            updateDatabase = false;
+            dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
+            memoryCache = new Cache<Lemma>(repo, 100);
+            dgvData.Rows.Clear();
+            dgvData.RowCount = repo.Count + 1;
+            updateDatabase = true;
+        }
+
+        private void OpenDatabaseFromDialog(FileDialog fileDialog) {
+            if(CommitChangesCancellable() == DialogResult.Cancel) {
+                return;
+            }
+            db.RollBackChangeSet();
+            if(fileDialog.ShowDialog() == DialogResult.OK) {
+                LoadDatabase(fileDialog.FileName);
+            }
+        }
+
+        private void initializeNewDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
+            OpenDatabaseFromDialog(saveFileDialog);
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
+            e.Cancel = CommitChangesCancellable() == DialogResult.Cancel;
+            db.CloseDatabase();
+        }
+
+        private void openDatabaseToolStripMenuItem_Click(object sender, EventArgs e) {
+            OpenDatabaseFromDialog(openFileDialog);
+        }
+
+        private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
+            dbHasChanges = true;
+            int nbRows = db.ExecuteNonQuery("delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)");
+            MessageBox.Show(nbRows + " duplicates removed");
+            RefreshGridView();
         }
     }
 }
