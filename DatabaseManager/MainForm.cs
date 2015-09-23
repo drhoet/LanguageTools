@@ -51,6 +51,7 @@ namespace DatabaseManager {
                     items.Clear();
                 }
             }
+            repo.AddBulk(items);
             db.CommitChangeSet();
             bgwImportDictionary.ReportProgress(100);
 

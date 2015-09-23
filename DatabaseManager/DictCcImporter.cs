@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DatabaseManager {
-    //TOOD: Remove stuff that comes after the gender
-    //TODO: Check for lines with double gender.
     internal class DictCcImporter : Importer {
         protected StreamReader reader;
         private StringBuilder sbWord = new StringBuilder();
@@ -24,7 +22,7 @@ namespace DatabaseManager {
             base.Close();
         }
 
-        public LemmaRepository.BulkItem parseLine(string line) {
+        public void parseLine(string line, List<LemmaRepository.BulkItem> itemList) {
             sbWord.Clear();
             sbGender.Clear();
 
@@ -62,6 +60,9 @@ namespace DatabaseManager {
                                     throw new ImportParsingException("Unmatching brackets: " + val);
                                 }
                                 --openCurlyBrackets;
+                                if(openCurlyBrackets == 0) {
+                                    AddLemma(sbWord, sbGender, itemList);
+                                }
                                 break;
                             default:
                                 if(openBrackets == 0 && openSquareBrackets == 0 && openCurlyBrackets < 2) {
@@ -77,23 +78,55 @@ namespace DatabaseManager {
                 }
             } catch(ImportParsingException ipe) {
                 ImportErrors.Add(ipe);
-                sbGender.Clear(); // invalidate
-                sbWord.Clear();
             }
-            LemmaRepository.BulkItem result;
-            result.Gender = sbGender.ToString();
-            result.Word = sbWord.ToString();
-            return result;
+        }
+
+        /// <summary>
+        /// Helper method that adds the current lemma to a list. Follows the following rules:
+        /// 1. If gender length is 0: doesn't add, since not a useful word
+        /// 2. If the word length is 0: take the same word as last time. Reasoning behind this: words with double gender are present as WORD {m} {f}
+        /// 3. All values get trimmed
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="gender"></param>
+        /// <param name="list"></param>
+        private void AddLemma(StringBuilder word, StringBuilder gender, List<LemmaRepository.BulkItem> list) {
+            if(gender.Length > 0) {
+                LemmaRepository.BulkItem item;
+                item.Gender = ToTrimmedString(gender);
+                item.Word = ToTrimmedString(word);
+                if(item.Word.Length == 0) {
+                    // take same word as last time
+                    if(list.Count > 0) {
+                        item.Word = list.Last().Word;
+                    } else {
+                        return;
+                    }
+                }
+                list.Add(item);
+            }
+
+            sbGender.Clear();
+            sbWord.Clear();
+        }
+
+        private string ToTrimmedString(StringBuilder sb) {
+            int start, end;
+            for(start = 0; start < sb.Length && sb[start] == ' '; ++start) { }
+            for(end = sb.Length - 1; end > start && sb[end] == ' '; --end) { }
+            return sb.ToString(start, end - start + 1);
         }
 
         public override IEnumerable<LemmaRepository.BulkItem> Items() {
+            List<LemmaRepository.BulkItem> lineItems = new List<LemmaRepository.BulkItem>();
             string line;
             while((line = reader.ReadLine()) != null) {
                 if(line != "" && !line.StartsWith("#")) {
-                    LemmaRepository.BulkItem result = parseLine(line);
-                    if(result.Gender.Length > 0) {
+                    parseLine(line, lineItems);
+                    foreach(LemmaRepository.BulkItem result in lineItems) {
                         yield return result;
                     }
+                    lineItems.Clear();
                 }
             }
             yield break;
