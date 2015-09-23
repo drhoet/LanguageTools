@@ -1,21 +1,23 @@
-﻿using System;
+﻿using LanguageTools.Backend;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml.Linq;
 using MSWord = Microsoft.Office.Interop.Word;
-using System.Windows.Forms;
-using LanguageTools.Backend;
 
-namespace LanguageTools.Word
-{
-    public partial class ThisAddIn
-    {
+namespace LanguageTools.Word {
+    public partial class ThisAddIn {
         private LookupPane lookupPane;
         private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
+        private LemmaDatabase db;
+        private LemmaRepository repo;
 
-        private void ThisAddIn_Startup(object sender, System.EventArgs e)
-        {
+        private void ThisAddIn_Startup(object sender, System.EventArgs e) {
+            db = new LemmaDatabase("default.db");
+            repo = new LemmaRepository(db);
+
             lookupPane = new LookupPane();
             germanGrammarTaskPane = this.CustomTaskPanes.Add(lookupPane, "German Grammar");
 
@@ -23,33 +25,28 @@ namespace LanguageTools.Word
             ToggleInstantLookup(Properties.Settings.Default.InstantLookupEnabled);
         }
 
-        private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
-        {
+        private void ThisAddIn_Shutdown(object sender, System.EventArgs e) {
             Properties.Settings.Default.Save();
+            db.CloseDatabase();
         }
 
-        public void ShowGermanGrammar(bool visible)
-        {
+        public void ShowGermanGrammar(bool visible) {
             germanGrammarTaskPane.Visible = visible;
             Properties.Settings.Default.GrammarPaneVisible = visible;
         }
 
-        public void LookupValue(string value)
-        {
-            if (lookupPane.Item.Text != value)
-            {
-                lookupPane.Item = LanguageTools.Backend.Backend.getInstance().FindLemma(value);
-                lookupPane.listBox1.Items.Add(value);
+        public void LookupValue(string value) {
+            if(lookupPane.Item.Text != value) {
+                List<Lemma> found = repo.FindAll(new FuzzyLemmaSpecification(value));
+                lookupPane.Item = found.First();
+                lookupPane.listBox1.DataSource = found;
             }
         }
 
-        public void ToggleInstantLookup(bool value)
-        {
-            if(value)
-            {
+        public void ToggleInstantLookup(bool value) {
+            if(value) {
                 Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
-            } else
-            {
+            } else {
                 Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
             }
             lookupPane.chxInstantLookup.Checked = value;
@@ -57,17 +54,13 @@ namespace LanguageTools.Word
             Properties.Settings.Default.InstantLookupEnabled = value;
         }
 
-        private void OnWindowSelectionChange(MSWord.Selection sel)
-        {
+        private void OnWindowSelectionChange(MSWord.Selection sel) {
             string searchFor = "";
-            switch(sel.Type)
-            {
+            switch(sel.Type) {
                 case MSWord.WdSelectionType.wdSelectionNormal:
-                    if (sel.Text.Length == 1)
-                    {
+                    if(sel.Text.Length == 1) {
                         searchFor = sel.Words[1].Text;
-                    } else
-                    {
+                    } else {
                         searchFor = sel.Text;
                     }
                     break;
@@ -80,8 +73,7 @@ namespace LanguageTools.Word
             }
 
             searchFor = searchFor.Trim();
-            if (searchFor.Length > 0)
-            {
+            if(searchFor.Length > 0) {
                 LookupValue(searchFor);
             }
         }
@@ -92,12 +84,11 @@ namespace LanguageTools.Word
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InternalStartup()
-        {
+        private void InternalStartup() {
             this.Startup += new System.EventHandler(ThisAddIn_Startup);
             this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
         }
-        
-        #endregion
+
+        #endregion VSTO generated code
     }
 }

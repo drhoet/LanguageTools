@@ -172,10 +172,7 @@ namespace DatabaseManager {
             if(db != null) {
                 db.CloseDatabase();
             }
-            SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
-            connBuilder.DataSource = fileName;
-            connBuilder.Version = 3;
-            db = new LemmaDatabase(connBuilder.ToString());
+            db = new LemmaDatabase(fileName);
             db.OpenChangeSet();
             repo = new LemmaRepository(db);
             RefreshGridView();
@@ -216,7 +213,7 @@ namespace DatabaseManager {
 
         private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
             dbHasChanges = true;
-            int nbRows = db.ExecuteNonQuery("delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)");
+            int nbRows = db.ExecuteNonQuery("delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)", null);
             MessageBox.Show(nbRows + " duplicates removed");
             RefreshGridView();
         }

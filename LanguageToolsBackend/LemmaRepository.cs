@@ -49,6 +49,26 @@ namespace LanguageTools.Backend {
             }
         }
 
+        public Lemma FindOne(ISqlSpecification<Lemma> spec) {
+            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.ToSqlString(), spec.Parameters, CommandBehavior.SingleRow)) {
+                if(reader.Read()) {
+                    return ConstructLemmaFromRecord(reader);
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        public List<Lemma> FindAll(ISqlSpecification<Lemma> spec) {
+            List<Lemma> list = new List<Lemma>();
+            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.ToSqlString(), spec.Parameters, CommandBehavior.Default)) {
+                while(reader.Read()) {
+                    list.Add(ConstructLemmaFromRecord(reader));
+                }
+            }
+            return list;
+        }
+
         /// <summary>
         /// Adds a list of items, provided as an array of structs. This method does no validation at all, and is supposed to be used
         /// for performance reasons only.

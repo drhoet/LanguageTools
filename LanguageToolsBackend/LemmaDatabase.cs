@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
@@ -11,8 +12,12 @@ namespace LanguageTools.Backend {
         private DbTransaction tran = null;
         protected DbConnection conn { get; private set; }
 
-        public LemmaDatabase(string connectionString) {
-            conn = new SQLiteConnection(connectionString);
+        public LemmaDatabase(string fileName) {
+            SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
+            connBuilder.DataSource = fileName;
+            connBuilder.Version = 3;
+
+            conn = new SQLiteConnection(connBuilder.ToString());
             conn.Open();
             InitializeDatabase();
         }
@@ -64,8 +69,17 @@ namespace LanguageTools.Backend {
         }
 
         internal DbCommand CreateCommand(string commandText) {
+            return CreateCommand(commandText, null);
+        }
+
+        internal DbCommand CreateCommand(string commandText, Dictionary<string, object> parameters) {
             DbCommand result = conn.CreateCommand();
             result.CommandText = commandText;
+            if(parameters != null) {
+                foreach(KeyValuePair<string, object> param in parameters) {
+                    CreateParameter(param.Key, param.Value, result);
+                }
+            }
             return result;
         }
 
@@ -76,8 +90,12 @@ namespace LanguageTools.Backend {
             return param;
         }
 
-        public int ExecuteNonQuery(string queryText) {
-            return CreateCommand(queryText).ExecuteNonQuery();
+        public int ExecuteNonQuery(string queryText, Dictionary<string, object> parameters) {
+            return CreateCommand(queryText, parameters).ExecuteNonQuery();
+        }
+
+        internal DbDataReader ExecuteReader(string queryText, Dictionary<string, object> parameters, CommandBehavior options) {
+            return CreateCommand(queryText, parameters).ExecuteReader(options);
         }
     }
 }

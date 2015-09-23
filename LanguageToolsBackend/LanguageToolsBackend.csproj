@@ -65,7 +65,10 @@
   <ItemGroup>
     <Compile Include="Backend.cs" />
     <Compile Include="Cache.cs" />
+    <Compile Include="FuzzyLemmaSpecification.cs" />
     <Compile Include="IPaginated.cs" />
+    <Compile Include="ISqlSpecification.cs" />
+    <Compile Include="Specification.cs" />
     <Compile Include="Lemma.cs" />
     <Compile Include="LemmaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
