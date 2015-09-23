@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +13,15 @@ namespace LanguageTools.Backend {
     public class LemmaDatabase {
         private DbTransaction tran = null;
         protected DbConnection conn { get; private set; }
+
+        public static LemmaDatabase CreateDefaultInstance() {
+            string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            folder = Path.Combine(folder, "LanguageTools");
+            if(!Directory.Exists(folder)) {
+                Directory.CreateDirectory(folder);
+            }
+            return new LemmaDatabase(Path.Combine(folder, "default.sqlite"));
+        }
 
         public LemmaDatabase(string fileName) {
             SQLiteConnectionStringBuilder connBuilder = new SQLiteConnectionStringBuilder();
@@ -24,8 +35,10 @@ namespace LanguageTools.Backend {
 
         private void InitializeDatabase() {
             OpenChangeSet();
-            DbCommand command = CreateCommand("create table if not exists lemma (id integer primary key not null, text varchar(100), gender varchar(2))");
-            command.ExecuteNonQuery();
+            ExecuteNonQuery("create table if not exists lemma (id integer primary key not null, text varchar(100) collate nocase, gender varchar(2))", null);
+            ExecuteNonQuery("create index if not exists lemma_text on lemma(text)", null);
+            ExecuteNonQuery("create index if not exists lemma_gender_text on lemma(gender, text)", null);
+
             CommitChangeSet();
         }
 
@@ -77,9 +90,10 @@ namespace LanguageTools.Backend {
             result.CommandText = commandText;
             if(parameters != null) {
                 foreach(KeyValuePair<string, object> param in parameters) {
-                    CreateParameter(param.Key, param.Value, result);
+                    result.Parameters.Add(CreateParameter(param.Key, param.Value, result));
                 }
             }
+            Debug.WriteLine(result.ToString());
             return result;
         }
 

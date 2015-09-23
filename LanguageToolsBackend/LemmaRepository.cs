@@ -50,7 +50,7 @@ namespace LanguageTools.Backend {
         }
 
         public Lemma FindOne(ISqlSpecification<Lemma> spec) {
-            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.ToSqlString(), spec.Parameters, CommandBehavior.SingleRow)) {
+            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.Sql, spec.Parameters, CommandBehavior.SingleRow)) {
                 if(reader.Read()) {
                     return ConstructLemmaFromRecord(reader);
                 } else {
@@ -61,7 +61,7 @@ namespace LanguageTools.Backend {
 
         public List<Lemma> FindAll(ISqlSpecification<Lemma> spec) {
             List<Lemma> list = new List<Lemma>();
-            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.ToSqlString(), spec.Parameters, CommandBehavior.Default)) {
+            using(DbDataReader reader = Database.ExecuteReader("select * from lemma where " + spec.Sql, spec.Parameters, CommandBehavior.Default)) {
                 while(reader.Read()) {
                     list.Add(ConstructLemmaFromRecord(reader));
                 }

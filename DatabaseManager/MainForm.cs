@@ -30,7 +30,7 @@ namespace DatabaseManager {
                 this.gender.ValueType = typeof(Lemma.WordGender);
             }
 
-            LoadDatabase("default.db");
+            LoadDatabase(null);
         }
 
         private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
@@ -172,7 +172,11 @@ namespace DatabaseManager {
             if(db != null) {
                 db.CloseDatabase();
             }
-            db = new LemmaDatabase(fileName);
+            if(fileName == null) {
+                db = LemmaDatabase.CreateDefaultInstance();
+            } else {
+                db = new LemmaDatabase(fileName);
+            }
             db.OpenChangeSet();
             repo = new LemmaRepository(db);
             RefreshGridView();

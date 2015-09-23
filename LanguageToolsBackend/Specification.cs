@@ -11,8 +11,7 @@ namespace LanguageTools.Backend {
     }
 
     public interface ISqlSpecification<T> : ISpecification<T> {
-
-        string ToSqlString();
+        string Sql { get; }
         Dictionary<string, object> Parameters { get; }
     }
 }

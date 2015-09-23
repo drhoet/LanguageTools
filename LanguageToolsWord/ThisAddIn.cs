@@ -15,7 +15,7 @@ namespace LanguageTools.Word {
         private LemmaRepository repo;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e) {
-            db = new LemmaDatabase("default.db");
+            db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
             lookupPane = new LookupPane();
@@ -37,9 +37,11 @@ namespace LanguageTools.Word {
 
         public void LookupValue(string value) {
             if(lookupPane.Item.Text != value) {
-                List<Lemma> found = repo.FindAll(new FuzzyLemmaSpecification(value));
-                lookupPane.Item = found.First();
-                lookupPane.listBox1.DataSource = found;
+                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
+                if(found.Count > 0) {
+                    lookupPane.Item = found.First();
+                    lookupPane.listBox1.DataSource = found;
+                }
             }
         }
 
