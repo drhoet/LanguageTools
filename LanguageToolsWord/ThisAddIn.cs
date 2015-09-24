@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -17,10 +19,13 @@ namespace LanguageTools.Word {
         private LemmaRepository repo;
         private string lastLookup = null;
         private BackgroundWorker lookupWorker = null;
+        private WinHook keyboardHook;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e) {
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
+
+            keyboardHook = new WinHook(WinHook.HookType.WH_KEYBOARD, OnKeyPress);
 
             lookupPane = new LookupPane();
             germanGrammarTaskPane = this.CustomTaskPanes.Add(lookupPane, "German Grammar");
@@ -49,6 +54,8 @@ namespace LanguageTools.Word {
                     lookupWorker.DoWork += OnDoLookupValue;
                     lookupWorker.RunWorkerCompleted += OnDoLookupCompleted;
                     lookupWorker.RunWorkerAsync(value);
+                } else {
+                    Debug.WriteLine(string.Format("Ignoring search for {0} because another search is running", value));
                 }
             }
         }
@@ -73,9 +80,14 @@ namespace LanguageTools.Word {
 
         public void ToggleInstantLookup(bool value) {
             if(value) {
-                Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
+                //Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
+                using(Process proc = Process.GetCurrentProcess())
+                using(ProcessModule mod = proc.MainModule) {
+                    keyboardHook.InstallHook((IntPtr)0, proc.Threads[0].Id);
+                }
             } else {
-                Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
+                keyboardHook.ClearHook();
+                //Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
             }
             lookupPane.chxInstantLookup.Checked = value;
             Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
@@ -94,6 +106,11 @@ namespace LanguageTools.Word {
                     break;
                 case MSWord.WdSelectionType.wdSelectionIP:
                     searchFor = sel.Words[1].Text;
+                    if(searchFor.Trim().Length == 0) {
+                        MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
+                        word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
+                        searchFor = word.Text;
+                    }
                     break;
                 default:
                     MessageBox.Show("Unknown selection type: " + sel.Type.ToString());
@@ -103,6 +120,22 @@ namespace LanguageTools.Word {
             searchFor = searchFor.Trim();
             if(searchFor.Length > 0) {
                 LookupValue(searchFor);
+            }
+        }
+
+        private void OnKeyPress(int nCode, IntPtr wParam, IntPtr lParam) {
+            const uint KF_UP = 0x80000000;
+            const uint VK_BACK = 0x08, VK_0 = 0x30, VK_Z = 0x5A, VK_NUMPAD0 = 0x60, VK_NUMPAD9 = 0x69;
+            if(((uint)lParam & KF_UP) == KF_UP) {
+                if((uint)wParam == VK_BACK ||
+                    ((uint)wParam >= VK_0 && (uint)wParam <= VK_Z) ||
+                    ((uint)wParam >= VK_NUMPAD0 && (uint)wParam <= VK_NUMPAD9)) {
+                    try {
+                        OnWindowSelectionChange(Globals.ThisAddIn.Application.Selection);
+                    } catch(Exception e) {
+                        Debug.WriteLine(e.Message);
+                    }
+                }
             }
         }
 
