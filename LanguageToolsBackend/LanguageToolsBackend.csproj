@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Cache.cs" />
     <Compile Include="ExactLemmaSpecification.cs" />
+    <Compile Include="GermanCompositionEndLemmaSpecification.cs" />
     <Compile Include="GermanBaseLemmaSpecification.cs" />
     <Compile Include="FuzzyLemmaSpecification.cs" />
     <Compile Include="IPaginated.cs" />

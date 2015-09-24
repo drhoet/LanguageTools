@@ -13,6 +13,7 @@ namespace LanguageTools.Word {
         private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
         private LemmaDatabase db;
         private LemmaRepository repo;
+        private string lastLookup = null;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e) {
             db = LemmaDatabase.CreateDefaultInstance();
@@ -36,11 +37,15 @@ namespace LanguageTools.Word {
         }
 
         public void LookupValue(string value) {
-            if(lookupPane.Item.Text != value) {
+            if(value != lastLookup) {
+                lastLookup = value;
                 List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
+                if(found.Count == 0) {
+                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
+                }
                 if(found.Count > 0) {
                     lookupPane.Item = found.First();
-                    lookupPane.listBox1.DataSource = found;
+                    lookupPane.lbxResults.DataSource = found;
                 }
             }
         }
