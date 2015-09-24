@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -80,14 +81,14 @@ namespace LanguageTools.Word {
 
         public void ToggleInstantLookup(bool value) {
             if(value) {
-                //Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
+                Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
                 using(Process proc = Process.GetCurrentProcess())
                 using(ProcessModule mod = proc.MainModule) {
                     keyboardHook.InstallHook((IntPtr)0, proc.Threads[0].Id);
                 }
             } else {
                 keyboardHook.ClearHook();
-                //Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
+                Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
             }
             lookupPane.chxInstantLookup.Checked = value;
             Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
@@ -99,18 +100,13 @@ namespace LanguageTools.Word {
             switch(sel.Type) {
                 case MSWord.WdSelectionType.wdSelectionNormal:
                     if(sel.Text.Length == 1) {
-                        searchFor = sel.Words[1].Text;
+                        searchFor = GetCompleteWordAt(sel);
                     } else {
                         searchFor = sel.Text;
                     }
                     break;
                 case MSWord.WdSelectionType.wdSelectionIP:
-                    searchFor = sel.Words[1].Text;
-                    if(searchFor.Trim().Length == 0) {
-                        MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
-                        word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
-                        searchFor = word.Text;
-                    }
+                    searchFor = GetCompleteWordAt(sel);
                     break;
                 default:
                     MessageBox.Show("Unknown selection type: " + sel.Type.ToString());
@@ -121,6 +117,14 @@ namespace LanguageTools.Word {
             if(searchFor.Length > 0) {
                 LookupValue(searchFor);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private string GetCompleteWordAt(MSWord.Selection sel) {
+            MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
+            word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
+            word.EndOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
+            return word.Text;
         }
 
         private void OnKeyPress(int nCode, IntPtr wParam, IntPtr lParam) {

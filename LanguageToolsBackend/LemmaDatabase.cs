@@ -94,7 +94,6 @@ namespace LanguageTools.Backend {
                     result.Parameters.Add(CreateParameter(param.Key, param.Value, result));
                 }
             }
-            Debug.WriteLine(result.ToString());
             return result;
         }
 
