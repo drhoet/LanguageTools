@@ -1,8 +1,10 @@
 ﻿using LanguageTools.Backend;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using MSWord = Microsoft.Office.Interop.Word;
@@ -14,6 +16,7 @@ namespace LanguageTools.Word {
         private LemmaDatabase db;
         private LemmaRepository repo;
         private string lastLookup = null;
+        private BackgroundWorker lookupWorker = null;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e) {
             db = LemmaDatabase.CreateDefaultInstance();
@@ -39,15 +42,33 @@ namespace LanguageTools.Word {
         public void LookupValue(string value) {
             if(value != lastLookup) {
                 lastLookup = value;
-                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
-                if(found.Count == 0) {
-                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
-                }
-                if(found.Count > 0) {
-                    lookupPane.Item = found.First();
-                    lookupPane.lbxResults.DataSource = found;
+                if(lookupWorker == null) { //this way, no two lookups run together
+                    //below line fixes a bug in VSTO with BackgroundWorker
+                    SynchronizationContext.SetSynchronizationContext(lookupPane.SyncCtx);
+                    lookupWorker = new BackgroundWorker();
+                    lookupWorker.DoWork += OnDoLookupValue;
+                    lookupWorker.RunWorkerCompleted += OnDoLookupCompleted;
+                    lookupWorker.RunWorkerAsync(value);
                 }
             }
+        }
+
+        private void OnDoLookupValue(object sender, DoWorkEventArgs e) {
+            string value = Convert.ToString(e.Argument);
+            List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
+            if(found.Count == 0) {
+                found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
+            }
+            e.Result = found;
+        }
+
+        private void OnDoLookupCompleted(object sender, RunWorkerCompletedEventArgs e) {
+            List<Lemma> found = (List<Lemma>)e.Result;
+            if(found.Count > 0) {
+                lookupPane.Item = found.First();
+                lookupPane.lbxResults.DataSource = found;
+            }
+            lookupWorker = null;
         }
 
         public void ToggleInstantLookup(bool value) {

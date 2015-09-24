@@ -87,6 +87,7 @@
             this.Controls.Add(this.chxInstantLookup);
             this.Name = "LookupPane";
             this.Size = new System.Drawing.Size(277, 407);
+            this.Load += new System.EventHandler(this.LookupPane_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,6 +22,8 @@ namespace LanguageTools.Word {
                 }
             }
         }
+
+        public SynchronizationContext SyncCtx { get; private set; }
 
         private Font defaultHeaderFont, defaultTextFont;
         private FontFamily headerFontFamily = new FontFamily("times new roman");
@@ -88,6 +91,10 @@ namespace LanguageTools.Word {
 
         private float GetDesignToPixelFactor(Font font) {
             return font.Size / font.FontFamily.GetEmHeight(font.Style);
+        }
+
+        private void LookupPane_Load(object sender, EventArgs e) {
+            SyncCtx = SynchronizationContext.Current;
         }
 
         private void lbxResults_MeasureItem(object sender, MeasureItemEventArgs e) {
