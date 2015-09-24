@@ -14,13 +14,13 @@ namespace LanguageTools.Backend {
 
         public GermanCompositionEndLemmaSpecification(string searchFor) {
             SearchFor = searchFor;
-            Sql = "@text like  '%' || text order by length(text) desc";
+            Sql = "@word like  '%' || word order by length(word) desc";
             Parameters = new Dictionary<string, object>();
-            Parameters.Add("@text", searchFor);
+            Parameters.Add("@word", searchFor);
         }
 
         public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Text, CompareOptions.IgnoreCase);
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Word, CompareOptions.IgnoreCase);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {

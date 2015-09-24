@@ -35,16 +35,16 @@ namespace LanguageTools.Backend {
         public enum WordGender { Mannlich, Weiblich, Neutrum, Plural, Undefined };
 
         public int Id { get; internal set; }
-        public string Text { get; set; }
+        public string Word { get; set; }
         public WordGender Gender { get; set; }
 
         public Lemma(string text, WordGender gender) {
-            Text = text;
+            Word = text;
             Gender = gender;
         }
 
         public Lemma() {
-            Text = "";
+            Word = "";
             Gender = WordGender.Undefined;
         }
     }

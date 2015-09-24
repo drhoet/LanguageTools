@@ -105,7 +105,7 @@ namespace DatabaseManager {
                 Lemma l = memoryCache.RetrieveElement(e.RowIndex);
                 switch(e.ColumnIndex) {
                     case 0: e.Value = l.Id; break;
-                    case 1: e.Value = l.Text; break;
+                    case 1: e.Value = l.Word; break;
                     case 2: e.Value = l.Gender; break;
                     default: e.Value = null; break;
                 }
@@ -131,7 +131,7 @@ namespace DatabaseManager {
 
         private void SetLemmaColumnValue(Lemma l, int columnIndex, object value) {
             switch(columnIndex) {
-                case 1: l.Text = Convert.ToString(value); break;
+                case 1: l.Word = Convert.ToString(value); break;
                 case 2: l.Gender = (Lemma.WordGender)value; break;
                 default: throw new ArgumentException(string.Format("Cannot set column {0} to value {1}", columnIndex, value));
             }
@@ -143,7 +143,8 @@ namespace DatabaseManager {
             }
             dbHasChanges = true;
 
-            repo.RemoveById(Convert.ToInt32(dgvData["id", e.RowIndex].Value));
+            Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+            repo.RemoveById(l.Id);
             memoryCache.ReloadAll();
         }
 
@@ -217,7 +218,7 @@ namespace DatabaseManager {
 
         private void removeDuplicatesToolStripMenuItem_Click(object sender, EventArgs e) {
             dbHasChanges = true;
-            int nbRows = db.ExecuteNonQuery("delete from lemma where id not in (select min(id) as minid from lemma group by text, gender)", null);
+            int nbRows = db.ExecuteNonQuery("delete from lemma where id not in (select min(id) as minid from lemma group by word, gender)", null);
             MessageBox.Show(nbRows + " duplicates removed");
             RefreshGridView();
         }

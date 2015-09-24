@@ -14,19 +14,19 @@ namespace LanguageTools.Backend {
 
         public GermanBaseLemmaSpecification(string searchFor) {
             SearchFor = searchFor;
-            Sql = "text=@text";
+            Sql = "word=@word";
             Parameters = new Dictionary<string, object>();
             StringBuilder sb = new StringBuilder();
             List<string> queryParts = new List<String>();
             if(searchFor.EndsWith("es")) {
-                queryParts.Add("((gender='m' or gender='n') and text || 'es'=@text)");
+                queryParts.Add("((gender='m' or gender='n') and word || 'es'=@word)");
             }
             if(searchFor.EndsWith("s")) {
-                queryParts.Add("((gender='m' or gender='n') and text || 's'=@text)");
+                queryParts.Add("((gender='m' or gender='n') and word || 's'=@word)");
             }
-            queryParts.Add("(text=@text)");
+            queryParts.Add("(word=@word)");
             Sql = string.Join(" or ", queryParts);
-            Parameters.Add("@text", searchFor);
+            Parameters.Add("@word", searchFor);
         }
 
         public bool IsSatisfiedBy(Lemma entity) {
@@ -38,13 +38,13 @@ namespace LanguageTools.Backend {
                 case Lemma.WordGender.Neutrum:
                     List<string> baseWords = RemoveGermanGenitivInflictions(SearchFor);
                     foreach(string baseWord in baseWords) {
-                        if(GermanEqualsIgnoreCase(entity.Text, baseWord)) {
+                        if(GermanEqualsIgnoreCase(entity.Word, baseWord)) {
                             return true;
                         }
                     }
                     return false;
                 default:
-                    return GermanEqualsIgnoreCase(entity.Text, SearchFor);
+                    return GermanEqualsIgnoreCase(entity.Word, SearchFor);
             }
         }
 

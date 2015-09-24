@@ -14,13 +14,13 @@ namespace LanguageTools.Backend {
 
         public FuzzyLemmaSpecification(string searchFor) {
             SearchFor = searchFor;
-            Sql = "text like @text collate nocase escape '^'";
+            Sql = "word like @word escape '^'";
             Parameters = new Dictionary<string, object>();
-            Parameters.Add("@text", "%" + SearchFor.Replace("%", "^%").Replace("_", "^_").Replace("^", "^^") + "%");
+            Parameters.Add("@word", "%" + SearchFor.Replace("%", "^%").Replace("_", "^_").Replace("^", "^^") + "%");
         }
 
         public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && GermanEqualsIgnoreCase(entity.Text, SearchFor);
+            return entity != null && GermanEqualsIgnoreCase(entity.Word, SearchFor);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {

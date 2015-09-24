@@ -18,9 +18,9 @@ namespace LanguageTools.Backend {
 
         public LemmaRepository(LemmaDatabase db) {
             this.Database = db;
-            insertCmd = db.CreateCommand("insert into lemma(text, gender) values(@text, @gender)");
+            insertCmd = db.CreateCommand("insert into lemma(word, gender) values(@word, @gender)");
             insertCmd.Prepare();
-            updateCmd = db.CreateCommand("update lemma set text=@text, gender=@gender where id=@id");
+            updateCmd = db.CreateCommand("update lemma set word=@word, gender=@gender where id=@id");
             updateCmd.Prepare();
             deleteCmd = db.CreateCommand("delete from lemma where id=@id");
             deleteCmd.Prepare();
@@ -76,7 +76,7 @@ namespace LanguageTools.Backend {
         /// <param name="items"></param>
         public void AddBulk(IEnumerable<BulkItem> items) {
             foreach(BulkItem item in items) {
-                insertCmd.Parameters.Add(Database.CreateParameter("@text", item.Word, insertCmd));
+                insertCmd.Parameters.Add(Database.CreateParameter("@word", item.Word, insertCmd));
                 insertCmd.Parameters.Add(Database.CreateParameter("@gender", item.Gender, insertCmd));
                 insertCmd.ExecuteNonQuery();
             }
@@ -87,7 +87,7 @@ namespace LanguageTools.Backend {
         /// </summary>
         /// <param name="i"></param>
         public void Add(Lemma i) {
-            insertCmd.Parameters.Add(Database.CreateParameter("@text", i.Text, insertCmd));
+            insertCmd.Parameters.Add(Database.CreateParameter("@word", i.Word, insertCmd));
             insertCmd.Parameters.Add(Database.CreateParameter("@gender", WordGenderConvert.ToString(i.Gender), insertCmd));
             int id = insertCmd.ExecuteNonQuery();
             i.Id = id;
@@ -99,7 +99,7 @@ namespace LanguageTools.Backend {
         /// <param name="i"></param>
         public void Update(Lemma i) {
             updateCmd.Parameters.Add(Database.CreateParameter("@id", i.Id, updateCmd));
-            updateCmd.Parameters.Add(Database.CreateParameter("@text", i.Text, updateCmd));
+            updateCmd.Parameters.Add(Database.CreateParameter("@word", i.Word, updateCmd));
             updateCmd.Parameters.Add(Database.CreateParameter("@gender", WordGenderConvert.ToString(i.Gender), updateCmd));
             updateCmd.ExecuteNonQuery();
         }
@@ -130,7 +130,7 @@ namespace LanguageTools.Backend {
         private static Lemma ConstructLemmaFromRecord(DbDataReader reader) {
             Lemma l = new Lemma();
             l.Id = reader.GetInt32(0);
-            l.Text = reader.GetString(1);
+            l.Word = reader.GetString(1);
             l.Gender = WordGenderConvert.ToGender(reader.GetString(2));
             return l;
         }

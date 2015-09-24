@@ -14,13 +14,13 @@ namespace LanguageTools.Backend {
 
         public ExactLemmaSpecification(string searchFor) {
             SearchFor = searchFor;
-            Sql = "text=@text collate nocase";
+            Sql = "word=@word";
             Parameters = new Dictionary<string, object>();
-            Parameters.Add("@text", SearchFor);
+            Parameters.Add("@word", SearchFor);
         }
 
         public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Text, SearchFor, CompareOptions.IgnoreCase) == 0;
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Word, SearchFor, CompareOptions.IgnoreCase) == 0;
         }
     }
 }
