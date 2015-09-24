@@ -1,5 +1,5 @@
 #LanguageTools
-![Search Results](/docs/search_results.png?raw=true "Search Results")
+<img src="/docs/search_results.png?raw=true" alt="Search Results" title="Search Results" align="right"/>
 The purpose of this project is to create a set of Office plugins, that show the gender of German words while typing.
 Currently, only gender information is supported.
 
