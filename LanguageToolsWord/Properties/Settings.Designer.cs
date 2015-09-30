@@ -46,5 +46,17 @@ namespace LanguageTools.Word.Properties {
                 this["InstantLookupEnabled"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public int LookupPaneWidth {
+            get {
+                return ((int)(this["LookupPaneWidth"]));
+            }
+            set {
+                this["LookupPaneWidth"] = value;
+            }
+        }
     }
 }

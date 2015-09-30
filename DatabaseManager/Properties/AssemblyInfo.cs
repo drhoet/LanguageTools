@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DatabaseManager")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Capgemini")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DatabaseManager")]
-[assembly: AssemblyCopyright("Copyright © Capgemini 2015")]
+[assembly: AssemblyCopyright("Copyright © Dries Hoet 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

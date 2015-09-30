@@ -12,18 +12,7 @@ using System.Windows.Forms;
 
 namespace LanguageTools.Word {
     public partial class LookupPane : UserControl {
-        private Lemma item;
-        public Lemma Item {
-            get { return item; }
-            set {
-                item = value;
-                if(item != null) {
-                    txtLemma.Text = Item.Word;
-                }
-            }
-        }
-
-        public SynchronizationContext SyncCtx { get; private set; }
+        public Lemma Item { get; set; }
 
         private Font defaultHeaderFont, defaultTextFont;
         private FontFamily headerFontFamily = new FontFamily("times new roman");
@@ -32,10 +21,6 @@ namespace LanguageTools.Word {
             InitializeComponent();
             defaultHeaderFont = new Font(headerFontFamily, 25, FontStyle.Bold, GraphicsUnit.Pixel);
             defaultTextFont = new Font(headerFontFamily, 10, FontStyle.Bold, GraphicsUnit.Pixel);
-        }
-
-        private void btnLookup_Click(object sender, EventArgs e) {
-            Globals.ThisAddIn.LookupValue(txtLemma.Text);
         }
 
         private void chxInstantLookup_Click(object sender, EventArgs e) {
@@ -91,10 +76,6 @@ namespace LanguageTools.Word {
 
         private float GetDesignToPixelFactor(Font font) {
             return font.Size / font.FontFamily.GetEmHeight(font.Style);
-        }
-
-        private void LookupPane_Load(object sender, EventArgs e) {
-            SyncCtx = SynchronizationContext.Current;
         }
 
         private void lbxResults_MeasureItem(object sender, MeasureItemEventArgs e) {

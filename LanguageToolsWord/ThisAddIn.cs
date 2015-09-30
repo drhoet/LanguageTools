@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using MSWord = Microsoft.Office.Interop.Word;
@@ -19,29 +18,40 @@ namespace LanguageTools.Word {
         private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
         private LemmaDatabase db;
         private LemmaRepository repo;
-        private string lastLookup = null, pendingLookup = null;
-        private WinHook keyboardHook;
-        private System.Threading.Timer lookupTimerThread;
+        private string lastLookup = null;
+        private Timer lookupTimer;
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e) {
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
-            lookupTimerThread = new System.Threading.Timer(ExecutePendingLookup);
-            keyboardHook = new WinHook(WinHook.HookType.WH_KEYBOARD, OnKeyPress);
+            lookupTimer = new Timer();
+            lookupTimer.Interval = 250;
+            lookupTimer.Tick += LookupWordUnderCursor;
 
             lookupPane = new LookupPane();
             germanGrammarTaskPane = this.CustomTaskPanes.Add(lookupPane, "German Grammar");
+            germanGrammarTaskPane.Width = Properties.Settings.Default.LookupPaneWidth;
 
             ShowGermanGrammar(Properties.Settings.Default.GrammarPaneVisible);
             ToggleInstantLookup(Properties.Settings.Default.InstantLookupEnabled);
         }
 
-        private void ExecutePendingLookup(object state) {
-            LookupValue(pendingLookup);
+        public void LookupWordUnderCursor(object sender, EventArgs args) {
+            string searchFor = FindWordUnderCursor();
+            if(searchFor.Length > 0) {
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.DoWork += bgw_DoWork;
+                worker.RunWorkerAsync(searchFor);
+            }
+        }
+
+        private void bgw_DoWork(object sender, DoWorkEventArgs e) {
+            LookupValue(Convert.ToString(e.Argument));
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e) {
+            Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
         }
@@ -52,7 +62,7 @@ namespace LanguageTools.Word {
         }
 
         public void LookupValue(string value) {
-            if(value != lastLookup) {
+            if(value != null && value != lastLookup) {
                 lastLookup = value;
                 List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
                 if(found.Count == 0) {
@@ -73,22 +83,17 @@ namespace LanguageTools.Word {
 
         public void ToggleInstantLookup(bool value) {
             if(value) {
-                Globals.ThisAddIn.Application.WindowSelectionChange += OnWindowSelectionChange;
-                using(Process proc = Process.GetCurrentProcess()) {
-                    keyboardHook.InstallHook((IntPtr)0, proc.Threads[0].Id);
-                }
-                lookupTimerThread.Change(250, 250);
+                lookupTimer.Start();
             } else {
-                lookupTimerThread.Change(Timeout.Infinite, Timeout.Infinite);
-                keyboardHook.ClearHook();
-                Globals.ThisAddIn.Application.WindowSelectionChange -= OnWindowSelectionChange;
+                lookupTimer.Stop();
             }
             lookupPane.chxInstantLookup.Checked = value;
             Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
             Properties.Settings.Default.InstantLookupEnabled = value;
         }
 
-        private void OnWindowSelectionChange(MSWord.Selection sel) {
+        private string FindWordUnderCursor() {
+            MSWord.Selection sel = Application.Selection;
             string searchFor = "";
             switch(sel.Type) {
                 case MSWord.WdSelectionType.wdSelectionNormal:
@@ -106,10 +111,7 @@ namespace LanguageTools.Word {
                     break;
             }
 
-            searchFor = searchFor.Trim();
-            if(searchFor.Length > 0) {
-                pendingLookup = searchFor;
-            }
+            return searchFor.Trim();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,28 +120,6 @@ namespace LanguageTools.Word {
             word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
             word.EndOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
             return word.Text;
-        }
-
-        private void OnKeyPress(int nCode, IntPtr wParam, IntPtr lParam) {
-            const uint KF_UP = 0x80000000;
-            const uint VK_BACK = 0x08, VK_0 = 0x30, VK_Z = 0x5A, VK_NUMPAD0 = 0x60, VK_NUMPAD9 = 0x69;
-            const uint HC_ACTION = 0;
-            // the WH_KEYBOARD hook fires every time the application (Here Word) calls GetMessage or PeekMessage and there
-            // is a keyboard message to be processed. PeekMessage can be called with a flag PM_NOREMOVE, which doesn't remove
-            // the message from the queue. That means if Word calls PeekMessage multiple times with this flag, we receive the
-            // event here multiple times. If nCode == HC_ACTION, the message was removed from the queue and we know it won't
-            // come again.
-            if(nCode == HC_ACTION && ((uint)lParam & KF_UP) == KF_UP) {
-                if((uint)wParam == VK_BACK ||
-                    ((uint)wParam >= VK_0 && (uint)wParam <= VK_Z) ||
-                    ((uint)wParam >= VK_NUMPAD0 && (uint)wParam <= VK_NUMPAD9)) {
-                    try {
-                        OnWindowSelectionChange(Globals.ThisAddIn.Application.Selection);
-                    } catch(Exception e) {
-                        MessageBox.Show(e.Message);
-                    }
-                }
-            }
         }
 
         #region VSTO generated code
