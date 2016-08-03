@@ -2,16 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
-using System.Data.SQLite;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DatabaseManager {
@@ -25,7 +15,7 @@ namespace DatabaseManager {
 
         public MainForm() {
             InitializeComponent();
-            foreach(Lemma.WordGender g in System.Enum.GetValues(typeof(Lemma.WordGender))) {
+            foreach(Lemma.WordGender g in Enum.GetValues(typeof(Lemma.WordGender))) {
                 this.gender.Items.Add(g);
                 this.gender.ValueType = typeof(Lemma.WordGender);
             }
