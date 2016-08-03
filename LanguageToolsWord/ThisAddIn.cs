@@ -114,7 +114,7 @@ namespace LanguageTools.Word {
             return searchFor.Trim();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetCompleteWordAt(MSWord.Selection sel) {
             MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
             word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
