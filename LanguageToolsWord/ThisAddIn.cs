@@ -1,19 +1,14 @@
 ﻿using LanguageTools.Backend;
 using LanguageTools.Common;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using MSWord = Microsoft.Office.Interop.Word;
 
-namespace LanguageTools.Word {
+namespace LanguageTools.Word
+{
     public partial class ThisAddIn {
         private LookupPane lookupPane;
         private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
@@ -22,7 +17,7 @@ namespace LanguageTools.Word {
         private string lastLookup = null;
         private Timer lookupTimer;
 
-        private void ThisAddIn_Startup(object sender, System.EventArgs e) {
+        private void ThisAddIn_Startup(object sender, EventArgs e) {
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
@@ -51,7 +46,7 @@ namespace LanguageTools.Word {
             LookupValue(Convert.ToString(e.Argument));
         }
 
-        private void ThisAddIn_Shutdown(object sender, System.EventArgs e) {
+        private void ThisAddIn_Shutdown(object sender, EventArgs e) {
             Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
