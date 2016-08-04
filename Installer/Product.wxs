@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="Language Tools" Language="1033" Version="1.0.0.0" Manufacturer="Dries Hoet" UpgradeCode="bd65b9ff-0ced-416e-aaef-108663c49f8b">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <UIRef Id="WixUI_FeatureTree"/>
+    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf"/>
+
+    <Feature Id="FEAT_Core" Title="Language Tools Core" Level="1">
+      <ComponentRef Id="CMP_DatabaseManager" />
+      <ComponentRef Id="CMP_SQLite.dll" />
+      <ComponentRef Id="CMP_SQLite_Interop.dll" />
+      <ComponentRef Id="CMP_BackendLib" />
+    </Feature>
+    <Feature Id="FEAT_WordAddin" Title="Language Tools Word Addin" Level="1" Absent="allow">
+      <ComponentRef Id="CMP_WordAddin" />
+      <ComponentRef Id="CMP_WordAddin.manifest" />
+      <ComponentRef Id="CMP_WordAddin.config" />
+      <ComponentRef Id="CMP_WordVstoManifest" />
+      <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll" />
+      <!--ComponentRef Id="CMP_Microsoft.Office.Tools.v4.0.Framework.dll" /-->
+      <!--ComponentRef Id="CMP_Microsoft.Office.Tools.Word.dll" /-->
+      <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll" />
+      <ComponentRef Id="CMP_Office2007Hklm"/>
+    </Feature>
+
+    <PropertyRef Id="NETFRAMEWORK40CLIENT" />
+    <Condition Message="This tool requires .NET Framework 4.0. Please install the .NET Framework then run this installer again.">
+      <![CDATA[Installed OR NETFRAMEWORK40CLIENT]]>
+    </Condition>
+
+    <Property Id="VSTOR40">
+      <RegistrySearch Id="VSTOR_Installed" Root="HKLM" Key="SOFTWARE\Microsoft\VSTO Runtime Setup\v4R" Name="VSTORFeature_CLR40" Type="raw" />
+    </Property>
+    <Condition Message="This tool requires the VSTO 4.0 Runtime. Please install the VSTO runtime then run this installer again.">
+      <![CDATA[Installed OR (VSTOR40 OR NOT OFFICE2007)]]>
+    </Condition>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Language Tools" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <Property Id="OFFICE2007">
+      <RegistrySearch Id="Office2007_Installed" Root="HKLM" Key="Software\Microsoft\Office\12.0\Outlook\InstallRoot" Name="Path" Type="raw" />
+    </Property>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="CMP_DatabaseManager">
+        <File Source="$(var.DatabaseManager.TargetPath)" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_SQLite.dll">
+        <File Source="$(var.DatabaseManager.TargetDir)System.Data.SQLite.dll" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_SQLite_Interop.dll">
+        <File Source="$(var.DatabaseManager.TargetDir)x86/SQLite.Interop.dll" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_BackendLib">
+        <File Source="$(var.LanguageToolsBackend.TargetPath)" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_WordAddin">
+        <File Source="$(var.LanguageToolsWord.TargetPath)" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_WordAddin.manifest">
+        <File Source="$(var.LanguageToolsWord.TargetPath).manifest" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_WordAddin.config">
+        <File Source="$(var.LanguageToolsWord.TargetPath).config" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_WordVstoManifest">
+        <File Id="FILE_WordVstoManifest" Source="$(var.LanguageToolsWord.TargetDir)$(var.LanguageToolsWord.TargetName).vsto" KeyPath="yes"/>
+        <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\Word\Addins\LanguageTools">
+          <RegistryValue Name="Description" Value="Language Tools Add-In" Type="string" Action="write" />
+          <RegistryValue Name="FriendlyName" Value="Language Tools" Type="string" Action="write" />
+          <RegistryValue Name="LoadBehavior" Value="3" Type="integer" Action="write" />
+          <RegistryValue Name="Manifest" Value="file:///[#FILE_WordVstoManifest]|vstolocal" Type="string" Action="write" />
+        </RegistryKey>
+      </Component>
+      <Component Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll">
+        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Common.v4.0.Utilities.dll" KeyPath="yes"/>
+      </Component>
+      <!--Component Id="CMP_Microsoft.Office.Tools.v4.0.Framework.dll">
+        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.v4.0.Framework.dll" KeyPath="yes"/>
+      </Component-->
+      <!--Component Id="CMP_Microsoft.Office.Tools.Word.dll">
+        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Word.dll" KeyPath="yes"/>
+      </Component-->
+      <Component Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll">
+        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.VisualStudio.Tools.Applications.Runtime.dll" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="CMP_Office2007Hklm" Permanent="yes">
+        <Condition><![CDATA[OFFICE2007]]></Condition>
+        <RegistryKey Root="HKLM" Key="Software\Microsoft\Office\12.0\Common\General">
+          <RegistryValue Name="EnableLocalMachineVSTO" Value="1" Type="integer" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
