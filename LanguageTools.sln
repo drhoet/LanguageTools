@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsWord", "LanguageToolsWord\LanguageToolsWord.csproj", "{C96B3910-A547-473D-BE37-4659C33DD0FF}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "Installer\Installer.wixproj", "{51137581-56D8-425C-9F64-64A13E23A876}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsOutlook", "LanguageToolsOutlook\LanguageToolsOutlook.csproj", "{53D160C0-9357-4ED3-B4B5-8AA2450C2052}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C86A2DF0-865E-4851-ABBB-8523ABF494EB} = {C86A2DF0-865E-4851-ABBB-8523ABF494EB}
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsCommon", "LanguageToolsCommon\LanguageToolsCommon.csproj", "{D85411B9-B199-4B30-9F9A-593408826B8E}"
 EndProject
 Global
