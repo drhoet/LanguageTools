@@ -199,28 +199,14 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="LookupPane.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="LanguageToolsRibbon.cs">
+      <SubType>Component</SubType>
     </Compile>
-    <Compile Include="LookupPane.Designer.cs">
-      <DependentUpon>LookupPane.cs</DependentUpon>
+    <Compile Include="LanguageToolsRibbon.Designer.cs">
+      <DependentUpon>LanguageToolsRibbon.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="WinHook.cs" />
-    <EmbeddedResource Include="LookupPane.resx">
-      <DependentUpon>LookupPane.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="LanguageToolsRibbon.resx">
       <DependentUpon>LanguageToolsRibbon.cs</DependentUpon>
@@ -235,12 +221,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <Compile Include="LanguageToolsRibbon.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="LanguageToolsRibbon.Designer.cs">
-      <DependentUpon>LanguageToolsRibbon.cs</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="ThisAddIn.cs">
@@ -259,15 +239,10 @@
       <Project>{c86a2df0-865e-4851-abbb-8523abf494eb}</Project>
       <Name>LanguageToolsBackend</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="panel-icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Search-icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Search-icon2.png" />
+    <ProjectReference Include="..\LanguageToolsCommon\LanguageToolsCommon.csproj">
+      <Project>{d85411b9-b199-4b30-9f9a-593408826b8e}</Project>
+      <Name>LanguageToolsCommon</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

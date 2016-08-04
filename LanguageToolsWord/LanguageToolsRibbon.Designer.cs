@@ -61,7 +61,7 @@
             // btnLookup
             // 
             this.btnLookup.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLookup.Image = global::LanguageTools.Word.Properties.Resources.Search_icon;
+            this.btnLookup.Image = global::LanguageTools.Common.Properties.Resources.Search_icon;
             this.btnLookup.Label = "Look up";
             this.btnLookup.Name = "btnLookup";
             this.btnLookup.ScreenTip = "Search selection in dictionary";
@@ -71,7 +71,7 @@
             // btnToggleLookupPane
             // 
             this.btnToggleLookupPane.Checked = global::LanguageTools.Word.Properties.Settings.Default.GrammarPaneVisible;
-            this.btnToggleLookupPane.Image = global::LanguageTools.Word.Properties.Resources.panel_icon;
+            this.btnToggleLookupPane.Image = global::LanguageTools.Common.Properties.Resources.panel_icon;
             this.btnToggleLookupPane.Label = "Lookup pane";
             this.btnToggleLookupPane.Name = "btnToggleLookupPane";
             this.btnToggleLookupPane.ShowImage = true;
@@ -79,7 +79,7 @@
             // 
             // btnToggleInstantLookup
             // 
-            this.btnToggleInstantLookup.Image = global::LanguageTools.Word.Properties.Resources.Search_icon2;
+            this.btnToggleInstantLookup.Image = global::LanguageTools.Common.Properties.Resources.Search_icon2;
             this.btnToggleInstantLookup.Label = "Instant lookup";
             this.btnToggleInstantLookup.Name = "btnToggleInstantLookup";
             this.btnToggleInstantLookup.ShowImage = true;

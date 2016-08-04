@@ -1,4 +1,5 @@
 ﻿using LanguageTools.Backend;
+using LanguageTools.Common;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -87,7 +88,6 @@ namespace LanguageTools.Word {
             } else {
                 lookupTimer.Stop();
             }
-            lookupPane.chxInstantLookup.Checked = value;
             Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
             Properties.Settings.Default.InstantLookupEnabled = value;
         }

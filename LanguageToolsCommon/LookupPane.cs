@@ -1,16 +1,10 @@
 ﻿using LanguageTools.Backend;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LanguageTools.Word {
+namespace LanguageTools.Common
+{
     public partial class LookupPane : UserControl {
         public Lemma Item { get; set; }
 
@@ -21,10 +15,6 @@ namespace LanguageTools.Word {
             InitializeComponent();
             defaultHeaderFont = new Font(headerFontFamily, 25, FontStyle.Bold, GraphicsUnit.Pixel);
             defaultTextFont = new Font(headerFontFamily, 10, FontStyle.Bold, GraphicsUnit.Pixel);
-        }
-
-        private void chxInstantLookup_Click(object sender, EventArgs e) {
-            Globals.ThisAddIn.ToggleInstantLookup(((CheckBox)sender).Checked);
         }
 
         private void lbxResults_DrawItem(object sender, DrawItemEventArgs e) {

@@ -1,4 +1,4 @@
-﻿namespace LanguageTools.Word
+﻿namespace LanguageTools.Common
 {
     partial class LookupPane
     {
@@ -28,21 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.chxInstantLookup = new System.Windows.Forms.CheckBox();
             this.lbxResults = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
-            // 
-            // chxInstantLookup
-            // 
-            this.chxInstantLookup.AutoSize = true;
-            this.chxInstantLookup.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.chxInstantLookup.Location = new System.Drawing.Point(0, 390);
-            this.chxInstantLookup.Name = "chxInstantLookup";
-            this.chxInstantLookup.Size = new System.Drawing.Size(277, 17);
-            this.chxInstantLookup.TabIndex = 2;
-            this.chxInstantLookup.Text = "Instant lookup";
-            this.chxInstantLookup.UseVisualStyleBackColor = true;
-            this.chxInstantLookup.Click += new System.EventHandler(this.chxInstantLookup_Click);
             // 
             // lbxResults
             // 
@@ -51,7 +38,7 @@
             this.lbxResults.FormattingEnabled = true;
             this.lbxResults.Location = new System.Drawing.Point(0, 0);
             this.lbxResults.Name = "lbxResults";
-            this.lbxResults.Size = new System.Drawing.Size(277, 390);
+            this.lbxResults.Size = new System.Drawing.Size(277, 407);
             this.lbxResults.TabIndex = 5;
             this.lbxResults.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lbxResults_DrawItem);
             this.lbxResults.MeasureItem += new System.Windows.Forms.MeasureItemEventHandler(this.lbxResults_MeasureItem);
@@ -61,16 +48,13 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.lbxResults);
-            this.Controls.Add(this.chxInstantLookup);
             this.Name = "LookupPane";
             this.Size = new System.Drawing.Size(277, 407);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-        public System.Windows.Forms.CheckBox chxInstantLookup;
         public System.Windows.Forms.ListBox lbxResults;
     }
 }

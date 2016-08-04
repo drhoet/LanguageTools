@@ -12,6 +12,7 @@ EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "Installer\Installer.wixproj", "{51137581-56D8-425C-9F64-64A13E23A876}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsOutlook", "LanguageToolsOutlook\LanguageToolsOutlook.csproj", "{53D160C0-9357-4ED3-B4B5-8AA2450C2052}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageToolsCommon", "LanguageToolsCommon\LanguageToolsCommon.csproj", "{D85411B9-B199-4B30-9F9A-593408826B8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +60,14 @@ Global
 		{53D160C0-9357-4ED3-B4B5-8AA2450C2052}.Release|Any CPU.Build.0 = Release|Any CPU
 		{53D160C0-9357-4ED3-B4B5-8AA2450C2052}.Release|x86.ActiveCfg = Release|Any CPU
 		{53D160C0-9357-4ED3-B4B5-8AA2450C2052}.Release|x86.Build.0 = Release|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Debug|x86.Build.0 = Debug|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Release|x86.ActiveCfg = Release|Any CPU
+		{D85411B9-B199-4B30-9F9A-593408826B8E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
