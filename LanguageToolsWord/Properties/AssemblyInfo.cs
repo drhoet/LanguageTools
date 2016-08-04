@@ -11,7 +11,7 @@ using System.Security;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("LanguageToolsWord")]
-[assembly: AssemblyCopyright("Copyright © Dries Hoet 2015")]
+[assembly: AssemblyCopyright("Copyright © drhoet 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
