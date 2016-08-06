@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="LanguageTools.Word.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="GrammarPaneVisible" Type="System.Boolean" Scope="User">
+    <Setting Name="LookupPaneVisible" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="InstantLookupEnabled" Type="System.Boolean" Scope="User">

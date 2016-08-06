@@ -6,13 +6,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using MSWord = Microsoft.Office.Interop.Word;
+using Microsoft.Office.Tools;
 
 namespace LanguageTools.Word
 {
-    public partial class ThisAddIn : LanguageToolsRibbonListener
+    public partial class ThisAddIn
     {
         private LookupPane lookupPane;
-        private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
+        private CustomTaskPane germanGrammarTaskPane;
         private LemmaDatabase db;
         private LemmaRepository repo;
         private string lastLookup = null;
@@ -28,75 +29,17 @@ namespace LanguageTools.Word
             lookupTimer.Tick += LookupWordUnderCursor;
 
             lookupPane = new LookupPane();
-            germanGrammarTaskPane = this.CustomTaskPanes.Add(lookupPane, "German Grammar");
+            germanGrammarTaskPane = CustomTaskPanes.Add(lookupPane, "German Grammar");
             germanGrammarTaskPane.Width = Properties.Settings.Default.LookupPaneWidth;
 
-            Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
-            Globals.Ribbons.Ribbon1.btnToggleLookupPane.Checked = Properties.Settings.Default.GrammarPaneVisible;
-            ShowGermanGrammar(Properties.Settings.Default.GrammarPaneVisible);
-            ToggleInstantLookup(Properties.Settings.Default.InstantLookupEnabled);
+            Globals.Ribbons.LanguageToolsRibbon.OnLookupClicked += LookupWordUnderCursor;
+            Globals.Ribbons.LanguageToolsRibbon.OnLookupPaneToggled += ToggleLookupPane;
+            ToggleLookupPane(this, Properties.Settings.Default.LookupPaneVisible);
+            Globals.Ribbons.LanguageToolsRibbon.OnInstantLookupToggled += ToggleInstantLookup;
+            ToggleInstantLookup(this, Properties.Settings.Default.InstantLookupEnabled);
         }
 
-        public void LookupWordUnderCursor(object sender, EventArgs args)
-        {
-            LookupWordUnderCursor();
-        }
-
-        public void LookupWordUnderCursor()
-        {
-            string searchFor = FindWordUnderCursor();
-            if (searchFor.Length > 0)
-            {
-                BackgroundWorker worker = new BackgroundWorker();
-                worker.DoWork += bgw_DoWork;
-                worker.RunWorkerAsync(searchFor);
-            }
-        }
-
-        private void bgw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            LookupValue(Convert.ToString(e.Argument));
-        }
-
-        private void ThisAddIn_Shutdown(object sender, EventArgs e)
-        {
-            Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
-            Properties.Settings.Default.Save();
-            db.CloseDatabase();
-        }
-
-        public void ShowGermanGrammar(bool visible)
-        {
-            germanGrammarTaskPane.Visible = visible;
-            Properties.Settings.Default.GrammarPaneVisible = visible;
-        }
-
-        public void LookupValue(string value)
-        {
-            if (value != null && value != lastLookup)
-            {
-                lastLookup = value;
-                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
-                if (found.Count == 0)
-                {
-                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
-                }
-                if (found.Count > 0)
-                {
-                    lookupPane.Invoke(new UpdateFoundItemsDelegate(UpdateFoundItems), found);
-                }
-            }
-        }
-
-        private delegate void UpdateFoundItemsDelegate(List<Lemma> list);
-
-        private void UpdateFoundItems(List<Lemma> found)
-        {
-            lookupPane.Item = found.First();
-            lookupPane.lbxResults.DataSource = found;
-        }
-
-        public void ToggleInstantLookup(bool value)
+        private void ToggleInstantLookup(object sender, bool value)
         {
             if (value)
             {
@@ -106,8 +49,60 @@ namespace LanguageTools.Word
             {
                 lookupTimer.Stop();
             }
-            Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
+            Globals.Ribbons.LanguageToolsRibbon.btnToggleInstantLookup.Checked = value;
             Properties.Settings.Default.InstantLookupEnabled = value;
+        }
+
+        private void ToggleLookupPane(object sender, bool visible)
+        {
+            germanGrammarTaskPane.Visible = visible;
+        }
+
+        public void LookupWordUnderCursor(object sender, EventArgs args)
+        {
+            string searchFor = FindWordUnderCursor();
+            if (searchFor.Length > 0)
+            {
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.DoWork += bgw_DoWork;
+                worker.RunWorkerCompleted += bgw_WorkCompleted;
+                worker.RunWorkerAsync(searchFor);
+            }
+        }
+
+        private void bgw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            string value = Convert.ToString(e.Argument);
+            if (value != null && value != lastLookup)
+            {
+                lastLookup = value;
+                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
+                if (found.Count == 0)
+                {
+                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
+                }
+                e.Result = found;
+            }
+        }
+
+        private void bgw_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            List<Lemma> found = (List<Lemma>)e.Result;
+            if (found != null && found.Count > 0)
+            {
+                lookupPane.Invoke( (Action)delegate {
+                    lookupPane.Item = found.First();
+                    lookupPane.lbxResults.DataSource = found;
+                });
+            }
+        }
+
+        private void ThisAddIn_Shutdown(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
+            Properties.Settings.Default.LookupPaneVisible = lookupPane.Visible;
+            Properties.Settings.Default.Save();
+            db.CloseDatabase();
         }
 
         private string FindWordUnderCursor()
@@ -148,8 +143,10 @@ namespace LanguageTools.Word
 
         protected override Microsoft.Office.Tools.Ribbon.IRibbonExtension[] CreateRibbonObjects()
         {
-            return new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { new LanguageToolsRibbon(Globals.Factory.GetRibbonFactory(), this) };
-
+            LanguageToolsRibbon ribbon = new LanguageToolsRibbon(Globals.Factory.GetRibbonFactory());
+            ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
+            ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
+            return new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { ribbon };
         }
 
         #region VSTO generated code

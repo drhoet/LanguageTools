@@ -4,7 +4,7 @@ namespace LanguageTools.Word
 {
     partial class ThisRibbonCollection : Microsoft.Office.Tools.Ribbon.RibbonReadOnlyCollection
     {
-        internal LanguageToolsRibbon Ribbon1
+        internal LanguageToolsRibbon LanguageToolsRibbon
         {
             get { return this.GetRibbon<LanguageToolsRibbon>(); }
         }

@@ -6,13 +6,11 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-        private LanguageToolsRibbonListener listener;
 
-        public LanguageToolsRibbon(Microsoft.Office.Tools.Ribbon.RibbonFactory factory, LanguageToolsRibbonListener listener)
+        public LanguageToolsRibbon(Microsoft.Office.Tools.Ribbon.RibbonFactory factory)
             : base(factory)
         {
             InitializeComponent();
-            this.listener = listener;
         }
 
         /// <summary> 
@@ -91,7 +89,6 @@
             this.Name = "LanguageToolsRibbon";
             this.RibbonType = "Microsoft.Outlook.Mail.Compose, Microsoft.Word.Document";
             this.Tabs.Add(this.tabLanguageTools);
-            this.Load += new Microsoft.Office.Tools.Ribbon.RibbonUIEventHandler(this.LanguageToolsRibbon_Load);
             this.tabLanguageTools.ResumeLayout(false);
             this.tabLanguageTools.PerformLayout();
             this.grpGermanGrammar.ResumeLayout(false);
