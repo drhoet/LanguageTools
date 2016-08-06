@@ -199,20 +199,11 @@
     can be found.
   -->
   <ItemGroup>
-    <Compile Include="LanguageToolsRibbon.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="LanguageToolsRibbon.Designer.cs">
-      <DependentUpon>LanguageToolsRibbon.cs</DependentUpon>
-    </Compile>
+    <Compile Include="RibbonCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="LanguageToolsRibbon.resx">
-      <DependentUpon>LanguageToolsRibbon.cs</DependentUpon>
-    </EmbeddedResource>
     <None Include="app.config" />
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -222,6 +213,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Settings.cs" />
     <Compile Include="ThisAddIn.cs">
       <SubType>Code</SubType>
     </Compile>

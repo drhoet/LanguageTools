@@ -9,7 +9,8 @@ using MSWord = Microsoft.Office.Interop.Word;
 
 namespace LanguageTools.Word
 {
-    public partial class ThisAddIn {
+    public partial class ThisAddIn : LanguageToolsRibbonListener
+    {
         private LookupPane lookupPane;
         private Microsoft.Office.Tools.CustomTaskPane germanGrammarTaskPane;
         private LemmaDatabase db;
@@ -17,7 +18,8 @@ namespace LanguageTools.Word
         private string lastLookup = null;
         private Timer lookupTimer;
 
-        private void ThisAddIn_Startup(object sender, EventArgs e) {
+        private void ThisAddIn_Startup(object sender, EventArgs e)
+        {
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
@@ -29,42 +31,58 @@ namespace LanguageTools.Word
             germanGrammarTaskPane = this.CustomTaskPanes.Add(lookupPane, "German Grammar");
             germanGrammarTaskPane.Width = Properties.Settings.Default.LookupPaneWidth;
 
+            Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
+            Globals.Ribbons.Ribbon1.btnToggleLookupPane.Checked = Properties.Settings.Default.GrammarPaneVisible;
             ShowGermanGrammar(Properties.Settings.Default.GrammarPaneVisible);
             ToggleInstantLookup(Properties.Settings.Default.InstantLookupEnabled);
         }
 
-        public void LookupWordUnderCursor(object sender, EventArgs args) {
+        public void LookupWordUnderCursor(object sender, EventArgs args)
+        {
+            LookupWordUnderCursor();
+        }
+
+        public void LookupWordUnderCursor()
+        {
             string searchFor = FindWordUnderCursor();
-            if(searchFor.Length > 0) {
+            if (searchFor.Length > 0)
+            {
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.DoWork += bgw_DoWork;
                 worker.RunWorkerAsync(searchFor);
             }
         }
 
-        private void bgw_DoWork(object sender, DoWorkEventArgs e) {
+        private void bgw_DoWork(object sender, DoWorkEventArgs e)
+        {
             LookupValue(Convert.ToString(e.Argument));
         }
 
-        private void ThisAddIn_Shutdown(object sender, EventArgs e) {
+        private void ThisAddIn_Shutdown(object sender, EventArgs e)
+        {
             Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
         }
 
-        public void ShowGermanGrammar(bool visible) {
+        public void ShowGermanGrammar(bool visible)
+        {
             germanGrammarTaskPane.Visible = visible;
             Properties.Settings.Default.GrammarPaneVisible = visible;
         }
 
-        public void LookupValue(string value) {
-            if(value != null && value != lastLookup) {
+        public void LookupValue(string value)
+        {
+            if (value != null && value != lastLookup)
+            {
                 lastLookup = value;
                 List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
-                if(found.Count == 0) {
+                if (found.Count == 0)
+                {
                     found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
                 }
-                if(found.Count > 0) {
+                if (found.Count > 0)
+                {
                     lookupPane.Invoke(new UpdateFoundItemsDelegate(UpdateFoundItems), found);
                 }
             }
@@ -72,29 +90,39 @@ namespace LanguageTools.Word
 
         private delegate void UpdateFoundItemsDelegate(List<Lemma> list);
 
-        private void UpdateFoundItems(List<Lemma> found) {
+        private void UpdateFoundItems(List<Lemma> found)
+        {
             lookupPane.Item = found.First();
             lookupPane.lbxResults.DataSource = found;
         }
 
-        public void ToggleInstantLookup(bool value) {
-            if(value) {
+        public void ToggleInstantLookup(bool value)
+        {
+            if (value)
+            {
                 lookupTimer.Start();
-            } else {
+            }
+            else
+            {
                 lookupTimer.Stop();
             }
             Globals.Ribbons.Ribbon1.btnToggleInstantLookup.Checked = value;
             Properties.Settings.Default.InstantLookupEnabled = value;
         }
 
-        private string FindWordUnderCursor() {
+        private string FindWordUnderCursor()
+        {
             MSWord.Selection sel = Application.Selection;
             string searchFor = "";
-            switch(sel.Type) {
+            switch (sel.Type)
+            {
                 case MSWord.WdSelectionType.wdSelectionNormal:
-                    if(sel.Text.Length == 1) {
+                    if (sel.Text.Length == 1)
+                    {
                         searchFor = GetCompleteWordAt(sel);
-                    } else {
+                    }
+                    else
+                    {
                         searchFor = sel.Text;
                     }
                     break;
@@ -110,11 +138,18 @@ namespace LanguageTools.Word
         }
 
         //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetCompleteWordAt(MSWord.Selection sel) {
+        public static string GetCompleteWordAt(MSWord.Selection sel)
+        {
             MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
             word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
             word.EndOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
             return word.Text;
+        }
+
+        protected override Microsoft.Office.Tools.Ribbon.IRibbonExtension[] CreateRibbonObjects()
+        {
+            return new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { new LanguageToolsRibbon(Globals.Factory.GetRibbonFactory(), this) };
+
         }
 
         #region VSTO generated code
@@ -123,7 +158,8 @@ namespace LanguageTools.Word
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InternalStartup() {
+        private void InternalStartup()
+        {
             this.Startup += new System.EventHandler(ThisAddIn_Startup);
             this.Shutdown += new System.EventHandler(ThisAddIn_Shutdown);
         }

@@ -1,4 +1,4 @@
-﻿namespace LanguageTools.Word
+﻿namespace LanguageTools.Common
 {
     partial class LanguageToolsRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
@@ -6,11 +6,13 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+        private LanguageToolsRibbonListener listener;
 
-        public LanguageToolsRibbon()
-            : base(Globals.Factory.GetRibbonFactory())
+        public LanguageToolsRibbon(Microsoft.Office.Tools.Ribbon.RibbonFactory factory, LanguageToolsRibbonListener listener)
+            : base(factory)
         {
             InitializeComponent();
+            this.listener = listener;
         }
 
         /// <summary> 
@@ -61,7 +63,7 @@
             // btnLookup
             // 
             this.btnLookup.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.btnLookup.Image = global::LanguageTools.Common.Properties.Resources.Search_icon;
+            this.btnLookup.Image = Properties.Resources.Search_icon;
             this.btnLookup.Label = "Look up";
             this.btnLookup.Name = "btnLookup";
             this.btnLookup.ScreenTip = "Search selection in dictionary";
@@ -70,8 +72,7 @@
             // 
             // btnToggleLookupPane
             // 
-            this.btnToggleLookupPane.Checked = global::LanguageTools.Word.Properties.Settings.Default.GrammarPaneVisible;
-            this.btnToggleLookupPane.Image = global::LanguageTools.Common.Properties.Resources.panel_icon;
+            this.btnToggleLookupPane.Image = Properties.Resources.panel_icon;
             this.btnToggleLookupPane.Label = "Lookup pane";
             this.btnToggleLookupPane.Name = "btnToggleLookupPane";
             this.btnToggleLookupPane.ShowImage = true;
@@ -79,7 +80,7 @@
             // 
             // btnToggleInstantLookup
             // 
-            this.btnToggleInstantLookup.Image = global::LanguageTools.Common.Properties.Resources.Search_icon2;
+            this.btnToggleInstantLookup.Image = Properties.Resources.Search_icon2;
             this.btnToggleInstantLookup.Label = "Instant lookup";
             this.btnToggleInstantLookup.Name = "btnToggleInstantLookup";
             this.btnToggleInstantLookup.ShowImage = true;
@@ -88,7 +89,7 @@
             // LanguageToolsRibbon
             // 
             this.Name = "LanguageToolsRibbon";
-            this.RibbonType = "Microsoft.Word.Document";
+            this.RibbonType = "Microsoft.Outlook.Mail.Compose, Microsoft.Word.Document";
             this.Tabs.Add(this.tabLanguageTools);
             this.Load += new Microsoft.Office.Tools.Ribbon.RibbonUIEventHandler(this.LanguageToolsRibbon_Load);
             this.tabLanguageTools.ResumeLayout(false);
@@ -101,18 +102,11 @@
 
         #endregion
 
-        internal Microsoft.Office.Tools.Ribbon.RibbonTab tabLanguageTools;
-        internal Microsoft.Office.Tools.Ribbon.RibbonGroup grpGermanGrammar;
-        internal Microsoft.Office.Tools.Ribbon.RibbonToggleButton btnToggleLookupPane;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton btnLookup;
-        internal Microsoft.Office.Tools.Ribbon.RibbonToggleButton btnToggleInstantLookup;
+        public Microsoft.Office.Tools.Ribbon.RibbonTab tabLanguageTools;
+        public Microsoft.Office.Tools.Ribbon.RibbonGroup grpGermanGrammar;
+        public Microsoft.Office.Tools.Ribbon.RibbonToggleButton btnToggleLookupPane;
+        public Microsoft.Office.Tools.Ribbon.RibbonButton btnLookup;
+        public Microsoft.Office.Tools.Ribbon.RibbonToggleButton btnToggleInstantLookup;
     }
 
-    partial class ThisRibbonCollection
-    {
-        internal LanguageToolsRibbon Ribbon1
-        {
-            get { return this.GetRibbon<LanguageToolsRibbon>(); }
-        }
-    }
 }

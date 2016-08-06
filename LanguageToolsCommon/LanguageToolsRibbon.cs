@@ -1,26 +1,29 @@
 ﻿using Microsoft.Office.Tools.Ribbon;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 
-namespace LanguageTools.Word {
+namespace LanguageTools.Common
+{
+    public interface LanguageToolsRibbonListener
+    {
+        void LookupWordUnderCursor();
+        void ShowGermanGrammar(bool isChecked);
+        void ToggleInstantLookup(bool isChecked);
+    }
+
     public partial class LanguageToolsRibbon {
 
         private void LanguageToolsRibbon_Load(object sender, RibbonUIEventArgs e) {
         }
 
         private void btnLookup_Click(object sender, RibbonControlEventArgs e) {
-            Globals.ThisAddIn.LookupValue(ThisAddIn.GetCompleteWordAt(Globals.ThisAddIn.Application.Selection));
+            listener.LookupWordUnderCursor();
         }
 
         private void btnToggleLookupPane_Click(object sender, RibbonControlEventArgs e) {
-            Globals.ThisAddIn.ShowGermanGrammar(((RibbonToggleButton)sender).Checked);
+            listener.ShowGermanGrammar(((RibbonToggleButton)sender).Checked);
         }
 
         private void btnToggleInstantLookup_Click(object sender, RibbonControlEventArgs e) {
-            Globals.ThisAddIn.ToggleInstantLookup(((RibbonToggleButton)sender).Checked);
+            listener.ToggleInstantLookup(((RibbonToggleButton)sender).Checked);
         }
     }
 }
