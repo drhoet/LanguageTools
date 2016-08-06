@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace LanguageToolsOutlook.Properties {
+namespace LanguageTools.Outlook.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -20,6 +20,42 @@ namespace LanguageToolsOutlook.Properties {
         public static Settings Default {
             get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GrammarPaneVisible {
+            get {
+                return ((bool)(this["GrammarPaneVisible"]));
+            }
+            set {
+                this["GrammarPaneVisible"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool InstantLookupEnabled {
+            get {
+                return ((bool)(this["InstantLookupEnabled"]));
+            }
+            set {
+                this["InstantLookupEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public int LookupPaneWidth {
+            get {
+                return ((int)(this["LookupPaneWidth"]));
+            }
+            set {
+                this["LookupPaneWidth"] = value;
             }
         }
     }
