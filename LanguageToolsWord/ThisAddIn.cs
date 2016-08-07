@@ -60,6 +60,9 @@ namespace LanguageTools.Word
 
         public void LookupWordUnderCursor(object sender, EventArgs args)
         {
+            bool timerRunning = lookupTimer.Enabled;
+            lookupTimer.Stop();
+
             string searchFor = FindWordUnderCursor();
             if (searchFor.Length > 0)
             {
@@ -68,6 +71,9 @@ namespace LanguageTools.Word
                 worker.RunWorkerCompleted += bgw_WorkCompleted;
                 worker.RunWorkerAsync(searchFor);
             }
+
+            if (timerRunning)
+                lookupTimer.Start();
         }
 
         private void bgw_DoWork(object sender, DoWorkEventArgs e)
