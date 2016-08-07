@@ -13,7 +13,7 @@ namespace LanguageTools.Word
     public partial class ThisAddIn
     {
         private LookupPane lookupPane;
-        private CustomTaskPane germanGrammarTaskPane;
+        private CustomTaskPane taskPane;
         private LemmaDatabase db;
         private LemmaRepository repo;
         private string lastLookup = null;
@@ -29,13 +29,15 @@ namespace LanguageTools.Word
             lookupTimer.Tick += LookupWordUnderCursor;
 
             lookupPane = new LookupPane();
-            germanGrammarTaskPane = CustomTaskPanes.Add(lookupPane, "German Grammar");
-            germanGrammarTaskPane.Width = Properties.Settings.Default.LookupPaneWidth;
+            taskPane = CustomTaskPanes.Add(lookupPane, "German Grammar");
+            taskPane.Width = Properties.Settings.Default.LookupPaneWidth;
+            taskPane.VisibleChanged += TaskPane_VisibleChanged;
+            taskPane.Control.SizeChanged += TaskPane_SizeChanged;
 
             Globals.Ribbons.LanguageToolsRibbon.OnLookupClicked += LookupWordUnderCursor;
             Globals.Ribbons.LanguageToolsRibbon.OnLookupPaneToggled += ToggleLookupPane;
-            ToggleLookupPane(this, Properties.Settings.Default.LookupPaneVisible);
             Globals.Ribbons.LanguageToolsRibbon.OnInstantLookupToggled += ToggleInstantLookup;
+            ToggleLookupPane(this, Properties.Settings.Default.LookupPaneVisible);
             ToggleInstantLookup(this, Properties.Settings.Default.InstantLookupEnabled);
         }
 
@@ -55,10 +57,10 @@ namespace LanguageTools.Word
 
         private void ToggleLookupPane(object sender, bool visible)
         {
-            germanGrammarTaskPane.Visible = visible;
+            taskPane.Visible = visible;
         }
 
-        public void LookupWordUnderCursor(object sender, EventArgs args)
+        public void LookupWordUnderCursor(object sender, EventArgs eventArgs)
         {
             bool timerRunning = lookupTimer.Enabled;
             lookupTimer.Stop();
@@ -69,7 +71,10 @@ namespace LanguageTools.Word
                 BackgroundWorker worker = new BackgroundWorker();
                 worker.DoWork += bgw_DoWork;
                 worker.RunWorkerCompleted += bgw_WorkCompleted;
-                worker.RunWorkerAsync(searchFor);
+                SearchParams args = new SearchParams();
+                args.SearchLemma = searchFor;
+                args.TargetWindow = Application.ActiveWindow;
+                worker.RunWorkerAsync(args);
             }
 
             if (timerRunning)
@@ -78,7 +83,8 @@ namespace LanguageTools.Word
 
         private void bgw_DoWork(object sender, DoWorkEventArgs e)
         {
-            string value = Convert.ToString(e.Argument);
+            SearchParams args = (SearchParams)e.Argument;
+            string value = args.SearchLemma;
             if (value != null && value != lastLookup)
             {
                 lastLookup = value;
@@ -87,16 +93,19 @@ namespace LanguageTools.Word
                 {
                     found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
                 }
-                e.Result = found;
+                args.Found = found;
             }
+            e.Result = args;
         }
 
         private void bgw_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            List<Lemma> found = (List<Lemma>)e.Result;
+            SearchParams args = (SearchParams)e.Result;
+            List<Lemma> found = args.Found;
             if (found != null && found.Count > 0)
             {
-                lookupPane.Invoke( (Action)delegate {
+                lookupPane.Invoke((Action)delegate
+                {
                     lookupPane.Item = found.First();
                     lookupPane.lbxResults.DataSource = found;
                 });
@@ -105,8 +114,6 @@ namespace LanguageTools.Word
 
         private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
-            Properties.Settings.Default.LookupPaneWidth = lookupPane.Width;
-            Properties.Settings.Default.LookupPaneVisible = lookupPane.Visible;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
         }
@@ -138,6 +145,17 @@ namespace LanguageTools.Word
             return searchFor.Trim();
         }
 
+        private void TaskPane_SizeChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.LookupPaneWidth = taskPane.Width;
+        }
+
+        private void TaskPane_VisibleChanged(object sender, EventArgs e)
+        {
+            Globals.Ribbons.LanguageToolsRibbon.btnToggleLookupPane.Checked = ((CustomTaskPane)sender).Visible;
+            Properties.Settings.Default.LookupPaneVisible = ((CustomTaskPane)sender).Visible;
+        }
+
         //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetCompleteWordAt(MSWord.Selection sel)
         {
@@ -153,6 +171,13 @@ namespace LanguageTools.Word
             ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
             ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
             return new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { ribbon };
+        }
+
+        private struct SearchParams
+        {
+            public MSWord.Window TargetWindow { get; set; }
+            public string SearchLemma { get; set; }
+            public List<Lemma> Found { get; set; }
         }
 
         #region VSTO generated code
