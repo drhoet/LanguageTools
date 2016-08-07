@@ -18,6 +18,7 @@ namespace LanguageTools.Word
         private Dictionary<MSWord.Window, CustomTaskPane> taskPaneMap = new Dictionary<MSWord.Window, CustomTaskPane>();
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
         private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
+        private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
 
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
@@ -111,7 +112,8 @@ namespace LanguageTools.Word
         private void AddTaskPane(MSWord.Document doc)
         {
             CustomTaskPane taskPane = CustomTaskPanes.Add(new LookupPane(), "German Grammar", doc.ActiveWindow);
-            taskPane.Width = Properties.Settings.Default.LookupPaneWidth;
+            taskPane.Control.Tag = taskPane;
+            taskPane.Width = paneWidth;
             taskPane.Visible = true;
             taskPane.Control.SizeChanged += TaskPane_SizeChanged;
             taskPaneMap.Add(taskPane.Window, taskPane);
@@ -208,6 +210,7 @@ namespace LanguageTools.Word
         {
             Properties.Settings.Default.LookupPaneVisible = taskPaneVisible;
             Properties.Settings.Default.InstantLookupEnabled = instantLookup;
+            Properties.Settings.Default.LookupPaneWidth = paneWidth;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
         }
@@ -241,7 +244,8 @@ namespace LanguageTools.Word
 
         private void TaskPane_SizeChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.LookupPaneWidth = ((LookupPane)sender).Width;
+            // the tag was set in AddTaskPane. Ugly hack, I know.
+            paneWidth = ((CustomTaskPane)((LookupPane)sender).Tag).Width;
         }
 
         //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
