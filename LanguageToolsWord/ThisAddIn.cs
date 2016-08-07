@@ -3,7 +3,6 @@ using LanguageTools.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Forms;
 using MSWord = Microsoft.Office.Interop.Word;
 using Microsoft.Office.Tools;
@@ -12,12 +11,13 @@ namespace LanguageTools.Word
 {
     public partial class ThisAddIn
     {
-        private LookupPane lookupPane;
-        private CustomTaskPane taskPane;
         private LemmaDatabase db;
         private LemmaRepository repo;
         private string lastLookup = null;
         private Timer lookupTimer;
+        private Dictionary<MSWord.Window, CustomTaskPane> taskPaneMap = new Dictionary<MSWord.Window, CustomTaskPane>();
+        private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
+        private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
 
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
@@ -28,17 +28,95 @@ namespace LanguageTools.Word
             lookupTimer.Interval = 250;
             lookupTimer.Tick += LookupWordUnderCursor;
 
-            lookupPane = new LookupPane();
-            taskPane = CustomTaskPanes.Add(lookupPane, "German Grammar");
-            taskPane.Width = Properties.Settings.Default.LookupPaneWidth;
-            taskPane.VisibleChanged += TaskPane_VisibleChanged;
-            taskPane.Control.SizeChanged += TaskPane_SizeChanged;
+            if (taskPaneVisible)
+            {
+                AddAllTaskPanes();
+            }
+            ((MSWord.ApplicationEvents4_Event)Application).NewDocument += ThisAddIn_NewDocument;
+            Application.DocumentOpen += Application_DocumentOpen;
+            Application.DocumentChange += Application_DocumentChange;
 
             Globals.Ribbons.LanguageToolsRibbon.OnLookupClicked += LookupWordUnderCursor;
             Globals.Ribbons.LanguageToolsRibbon.OnLookupPaneToggled += ToggleLookupPane;
             Globals.Ribbons.LanguageToolsRibbon.OnInstantLookupToggled += ToggleInstantLookup;
-            ToggleLookupPane(this, Properties.Settings.Default.LookupPaneVisible);
-            ToggleInstantLookup(this, Properties.Settings.Default.InstantLookupEnabled);
+            ToggleInstantLookup(this, instantLookup);
+        }
+
+        private void Application_DocumentChange()
+        {
+            RemoveOrphanedTaskPanes();
+        }
+
+        private void Application_DocumentOpen(MSWord.Document Doc)
+        {
+            RemoveOrphanedTaskPanes();
+            if (taskPaneVisible && Application.ShowWindowsInTaskbar)
+            {
+                AddTaskPane(Doc);
+            }
+        }
+
+        private void ThisAddIn_NewDocument(MSWord.Document Doc)
+        {
+            if (taskPaneVisible && Application.ShowWindowsInTaskbar)
+            {
+                AddTaskPane(Doc);
+            }
+        }
+
+        private void AddAllTaskPanes()
+        {
+            if (Globals.ThisAddIn.Application.Documents.Count > 0)
+            {
+                if (Application.ShowWindowsInTaskbar == true)
+                {
+                    foreach (MSWord.Document doc in Application.Documents)
+                    {
+                        AddTaskPane(doc);
+                    }
+                }
+                else
+                {
+                    AddTaskPane(Application.ActiveDocument);
+                }
+            }
+        }
+
+        private void RemoveAllTaskPanes()
+        {
+            foreach (CustomTaskPane pane in taskPaneMap.Values)
+            {
+                CustomTaskPanes.Remove(pane);
+            }
+            taskPaneMap.Clear();
+        }
+
+        private void RemoveOrphanedTaskPanes()
+        {
+            List<MSWord.Window> removedWindows = new List<MSWord.Window>();
+            foreach (KeyValuePair<MSWord.Window, CustomTaskPane> entry in taskPaneMap)
+            {
+                if(entry.Value.Window == null)
+                {
+                    CustomTaskPanes.Remove(entry.Value);
+                    removedWindows.Add(entry.Key);
+                }
+            }
+            foreach(MSWord.Window window in removedWindows)
+            {
+                taskPaneMap.Remove(window);
+            }
+        }
+
+        private void AddTaskPane(MSWord.Document doc)
+        {
+            CustomTaskPane taskPane = CustomTaskPanes.Add(new LookupPane(), "German Grammar", doc.ActiveWindow);
+            taskPane.Width = Properties.Settings.Default.LookupPaneWidth;
+            taskPane.Visible = true;
+            taskPane.Control.SizeChanged += TaskPane_SizeChanged;
+            taskPaneMap.Add(taskPane.Window, taskPane);
+
+            lastLookup = null; //setting this to null will make sure a new search is done, otherwise the newly opened panels stay empty
         }
 
         private void ToggleInstantLookup(object sender, bool value)
@@ -52,12 +130,20 @@ namespace LanguageTools.Word
                 lookupTimer.Stop();
             }
             Globals.Ribbons.LanguageToolsRibbon.btnToggleInstantLookup.Checked = value;
-            Properties.Settings.Default.InstantLookupEnabled = value;
+            instantLookup = value;
         }
 
         private void ToggleLookupPane(object sender, bool visible)
         {
-            taskPane.Visible = visible;
+            taskPaneVisible = visible;
+            if (visible)
+            {
+                AddAllTaskPanes();
+            }
+            else
+            {
+                RemoveAllTaskPanes();
+            }
         }
 
         public void LookupWordUnderCursor(object sender, EventArgs eventArgs)
@@ -65,7 +151,7 @@ namespace LanguageTools.Word
             bool timerRunning = lookupTimer.Enabled;
             lookupTimer.Stop();
 
-            string searchFor = FindWordUnderCursor();
+            string searchFor = FindWordUnderCursor(Application.ActiveWindow);
             if (searchFor.Length > 0)
             {
                 BackgroundWorker worker = new BackgroundWorker();
@@ -104,23 +190,31 @@ namespace LanguageTools.Word
             List<Lemma> found = args.Found;
             if (found != null && found.Count > 0)
             {
-                lookupPane.Invoke((Action)delegate
+                CustomTaskPane ctp = null;
+                taskPaneMap.TryGetValue(args.TargetWindow, out ctp);
+                if (ctp != null)
                 {
-                    lookupPane.Item = found.First();
-                    lookupPane.lbxResults.DataSource = found;
-                });
+                    LookupPane lookupPane = (LookupPane)ctp.Control;
+                    lookupPane.Invoke((Action)delegate
+                    {
+                        lookupPane.Item = found[0];
+                        lookupPane.lbxResults.DataSource = found;
+                    });
+                }
             }
         }
 
         private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
+            Properties.Settings.Default.LookupPaneVisible = taskPaneVisible;
+            Properties.Settings.Default.InstantLookupEnabled = instantLookup;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
         }
 
-        private string FindWordUnderCursor()
+        private string FindWordUnderCursor(MSWord.Window targetWindow)
         {
-            MSWord.Selection sel = Application.Selection;
+            MSWord.Selection sel = targetWindow.Selection;
             string searchFor = "";
             switch (sel.Type)
             {
@@ -147,13 +241,7 @@ namespace LanguageTools.Word
 
         private void TaskPane_SizeChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.LookupPaneWidth = taskPane.Width;
-        }
-
-        private void TaskPane_VisibleChanged(object sender, EventArgs e)
-        {
-            Globals.Ribbons.LanguageToolsRibbon.btnToggleLookupPane.Checked = ((CustomTaskPane)sender).Visible;
-            Properties.Settings.Default.LookupPaneVisible = ((CustomTaskPane)sender).Visible;
+            Properties.Settings.Default.LookupPaneWidth = ((LookupPane)sender).Width;
         }
 
         //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
