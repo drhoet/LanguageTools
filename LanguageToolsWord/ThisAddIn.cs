@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using MSWord = Microsoft.Office.Interop.Word;
 using Microsoft.Office.Tools;
+using System.Reflection;
 
 namespace LanguageTools.Word
 {
@@ -40,7 +41,14 @@ namespace LanguageTools.Word
             Globals.Ribbons.LanguageToolsRibbon.OnLookupClicked += LookupWordUnderCursor;
             Globals.Ribbons.LanguageToolsRibbon.OnLookupPaneToggled += ToggleLookupPane;
             Globals.Ribbons.LanguageToolsRibbon.OnInstantLookupToggled += ToggleInstantLookup;
+            Globals.Ribbons.LanguageToolsRibbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
             ToggleInstantLookup(this, instantLookup);
+        }
+
+        private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
+        {
+            AboutBox box = new AboutBox(Assembly.GetExecutingAssembly());
+            box.ShowDialog();
         }
 
         private void Application_DocumentChange()
