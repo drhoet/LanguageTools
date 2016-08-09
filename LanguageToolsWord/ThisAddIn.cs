@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using MSWord = Microsoft.Office.Interop.Word;
 using Microsoft.Office.Tools;
 using System.Reflection;
+using Microsoft.Office.Tools.Ribbon;
 
 namespace LanguageTools.Word
 {
@@ -38,11 +39,19 @@ namespace LanguageTools.Word
             Application.DocumentOpen += Application_DocumentOpen;
             Application.DocumentChange += Application_DocumentChange;
 
-            Globals.Ribbons.LanguageToolsRibbon.OnLookupClicked += LookupWordUnderCursor;
-            Globals.Ribbons.LanguageToolsRibbon.OnLookupPaneToggled += ToggleLookupPane;
-            Globals.Ribbons.LanguageToolsRibbon.OnInstantLookupToggled += ToggleInstantLookup;
-            Globals.Ribbons.LanguageToolsRibbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
-            ToggleInstantLookup(this, instantLookup);
+            ToggleInstantLookup(this, instantLookup, null);
+        }
+
+        private void LanguageToolsRibbon_OnRibbonCreated(object sender, EventArgs e)
+        {
+            LanguageToolsRibbon ribbon = (LanguageToolsRibbon)sender;
+            ribbon.OnLookupClicked += LookupWordUnderCursor;
+            ribbon.OnLookupPaneToggled += ToggleLookupPane;
+            ribbon.OnInstantLookupToggled += ToggleInstantLookup;
+            ribbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
+
+            ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
+            ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
         }
 
         private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
@@ -129,7 +138,7 @@ namespace LanguageTools.Word
             lastLookup = null; //setting this to null will make sure a new search is done, otherwise the newly opened panels stay empty
         }
 
-        private void ToggleInstantLookup(object sender, bool value)
+        private void ToggleInstantLookup(object sender, bool value, RibbonControlEventArgs e)
         {
             if (value)
             {
@@ -143,7 +152,7 @@ namespace LanguageTools.Word
             instantLookup = value;
         }
 
-        private void ToggleLookupPane(object sender, bool visible)
+        private void ToggleLookupPane(object sender, bool visible, RibbonControlEventArgs e)
         {
             taskPaneVisible = visible;
             if (visible)
@@ -265,12 +274,12 @@ namespace LanguageTools.Word
             return word.Text;
         }
 
-        protected override Microsoft.Office.Tools.Ribbon.IRibbonExtension[] CreateRibbonObjects()
+        protected override IRibbonExtension[] CreateRibbonObjects()
         {
-            LanguageToolsRibbon ribbon = new LanguageToolsRibbon(Globals.Factory.GetRibbonFactory());
-            ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
-            ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
-            return new Microsoft.Office.Tools.Ribbon.IRibbonExtension[] { ribbon };
+            LanguageToolsRibbon.GlobalsFactory = Globals.Factory;
+            LanguageToolsRibbon.OnRibbonCreated += LanguageToolsRibbon_OnRibbonCreated;
+
+            return new IRibbonExtension[] { new LanguageToolsRibbon() };
         }
 
         private struct SearchParams

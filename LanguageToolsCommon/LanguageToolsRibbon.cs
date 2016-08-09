@@ -3,7 +3,7 @@ using System;
 
 namespace LanguageTools.Common
 {
-    public delegate void ToggleEventHandler(object sender, bool value);
+    public delegate void ToggleEventHandler(object sender, bool value, RibbonControlEventArgs e);
 
     public partial class LanguageToolsRibbon
     {
@@ -20,12 +20,12 @@ namespace LanguageTools.Common
 
         private void btnToggleLookupPane_Click(object sender, RibbonControlEventArgs e)
         {
-            OnLookupPaneToggled?.Invoke(sender, ((RibbonToggleButton)sender).Checked);
+            OnLookupPaneToggled?.Invoke(sender, ((RibbonToggleButton)sender).Checked, e);
         }
 
         private void btnToggleInstantLookup_Click(object sender, RibbonControlEventArgs e)
         {
-            OnInstantLookupToggled?.Invoke(sender, ((RibbonToggleButton)sender).Checked);
+            OnInstantLookupToggled?.Invoke(sender, ((RibbonToggleButton)sender).Checked, e);
         }
 
         private void btnInfo_Click(object sender, RibbonControlEventArgs e)

@@ -1,4 +1,7 @@
-﻿namespace LanguageTools.Common
+﻿using Microsoft.Office.Tools;
+using System;
+
+namespace LanguageTools.Common
 {
     partial class LanguageToolsRibbon : Microsoft.Office.Tools.Ribbon.RibbonBase
     {
@@ -7,10 +10,16 @@
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        public LanguageToolsRibbon(Microsoft.Office.Tools.Ribbon.RibbonFactory factory)
-            : base(factory)
+        // REMARK: This ugly construct is there because in Outlook, new Ribbons objects are created for each inspector. For this to work,
+        // they need to have a constructor without arguments. I need to pass the factory :( So I put it in statically. Also, I want to be
+        // able to set some event handlers: another static event was born...
+        public static Factory GlobalsFactory;
+        public static event EventHandler OnRibbonCreated;
+        
+        public LanguageToolsRibbon() : base(GlobalsFactory.GetRibbonFactory())
         {
             InitializeComponent();
+            OnRibbonCreated?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary> 
