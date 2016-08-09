@@ -26,12 +26,12 @@ namespace LanguageTools.Outlook.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool GrammarPaneVisible {
+        public bool LookupPaneVisible {
             get {
-                return ((bool)(this["GrammarPaneVisible"]));
+                return ((bool)(this["LookupPaneVisible"]));
             }
             set {
-                this["GrammarPaneVisible"] = value;
+                this["LookupPaneVisible"] = value;
             }
         }
         

@@ -1,8 +1,8 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="LanguageToolsOutlook.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="LanguageTools.Outlook.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="GrammarPaneVisible" Type="System.Boolean" Scope="User">
+    <Setting Name="LookupPaneVisible" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="InstantLookupEnabled" Type="System.Boolean" Scope="User">
