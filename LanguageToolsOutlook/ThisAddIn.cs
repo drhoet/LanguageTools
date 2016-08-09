@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using MSOutlook = Microsoft.Office.Interop.Outlook;
-using MSWord = Microsoft.Office.Interop.Word;
-using Office = Microsoft.Office.Core;
 using LanguageTools.Backend;
 using System.Windows.Forms;
 using Microsoft.Office.Tools;
@@ -23,6 +20,7 @@ namespace LanguageTools.Outlook
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
         private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
+        private OutlookActiveTextStrategy activeTextStrategy = new OutlookActiveTextStrategy();
 
         public Dictionary<MSOutlook.Inspector, InspectorWrapper> InspectorWrappers { get; private set; } = new Dictionary<MSOutlook.Inspector, InspectorWrapper>();
         private MSOutlook.Inspectors inspectors;
@@ -101,7 +99,7 @@ namespace LanguageTools.Outlook
             bool timerRunning = lookupTimer.Enabled;
             lookupTimer.Stop();
 
-            string searchFor = FindWordUnderCursor(Application.ActiveInspector());
+            string searchFor = activeTextStrategy.FindActiveWord(Application.ActiveInspector());
             if (searchFor.Length > 0)
             {
                 BackgroundWorker worker = new BackgroundWorker();
@@ -152,43 +150,6 @@ namespace LanguageTools.Outlook
                     });
                 }
             }
-        }
-
-        private string FindWordUnderCursor(MSOutlook.Inspector targetWindow)
-        {
-            MSWord.Document document = (MSWord.Document)targetWindow.WordEditor;
-            MSWord.Selection sel = document.Application.Selection;
-            string searchFor = "";
-            switch (sel.Type)
-            {
-                case MSWord.WdSelectionType.wdSelectionNormal:
-                    if (sel.Text.Length == 1)
-                    {
-                        searchFor = GetCompleteWordAt(sel);
-                    }
-                    else
-                    {
-                        searchFor = sel.Text;
-                    }
-                    break;
-                case MSWord.WdSelectionType.wdSelectionIP:
-                    searchFor = GetCompleteWordAt(sel);
-                    break;
-                default:
-                    MessageBox.Show("Unknown selection type: " + sel.Type.ToString());
-                    break;
-            }
-
-            return searchFor.Trim();
-        }
-
-        //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetCompleteWordAt(MSWord.Selection sel)
-        {
-            MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
-            word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
-            word.EndOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
-            return word.Text;
         }
 
         private struct SearchParams

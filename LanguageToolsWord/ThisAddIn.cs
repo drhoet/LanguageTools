@@ -21,6 +21,7 @@ namespace LanguageTools.Word
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
         private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
+        private WordActiveTextStrategy activeTextStrategy = new WordActiveTextStrategy();
 
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
@@ -170,7 +171,7 @@ namespace LanguageTools.Word
             bool timerRunning = lookupTimer.Enabled;
             lookupTimer.Stop();
 
-            string searchFor = FindWordUnderCursor(Application.ActiveWindow);
+            string searchFor = activeTextStrategy.FindActiveWord(Application.ActiveDocument);
             if (searchFor.Length > 0)
             {
                 BackgroundWorker worker = new BackgroundWorker();
@@ -232,46 +233,10 @@ namespace LanguageTools.Word
             db.CloseDatabase();
         }
 
-        private string FindWordUnderCursor(MSWord.Window targetWindow)
-        {
-            MSWord.Selection sel = targetWindow.Selection;
-            string searchFor = "";
-            switch (sel.Type)
-            {
-                case MSWord.WdSelectionType.wdSelectionNormal:
-                    if (sel.Text.Length == 1)
-                    {
-                        searchFor = GetCompleteWordAt(sel);
-                    }
-                    else
-                    {
-                        searchFor = sel.Text;
-                    }
-                    break;
-                case MSWord.WdSelectionType.wdSelectionIP:
-                    searchFor = GetCompleteWordAt(sel);
-                    break;
-                default:
-                    MessageBox.Show("Unknown selection type: " + sel.Type.ToString());
-                    break;
-            }
-
-            return searchFor.Trim();
-        }
-
         private void TaskPane_SizeChanged(object sender, EventArgs e)
         {
             // the tag was set in AddTaskPane. Ugly hack, I know.
             paneWidth = ((CustomTaskPane)((LookupPane)sender).Tag).Width;
-        }
-
-        //TODO: [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetCompleteWordAt(MSWord.Selection sel)
-        {
-            MSWord.Range word = sel.Document.Range(sel.Start, sel.End);
-            word.StartOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
-            word.EndOf(MSWord.WdUnits.wdWord, MSWord.WdMovementType.wdExtend);
-            return word.Text;
         }
 
         protected override IRibbonExtension[] CreateRibbonObjects()

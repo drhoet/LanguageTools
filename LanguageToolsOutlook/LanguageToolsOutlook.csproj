@@ -207,6 +207,7 @@
   -->
   <ItemGroup>
     <Compile Include="InspectorWrapper.cs" />
+    <Compile Include="OutlookActiveTextStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -242,6 +243,10 @@
     <ProjectReference Include="..\LanguageToolsCommon\LanguageToolsCommon.csproj">
       <Project>{d85411b9-b199-4b30-9f9a-593408826b8e}</Project>
       <Name>LanguageToolsCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LanguageToolsWord\LanguageToolsWord.csproj">
+      <Project>{c96b3910-a547-473d-be37-4659c33dd0ff}</Project>
+      <Name>LanguageToolsWord</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
