@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
     public class WordGenderConvert {
@@ -13,6 +9,7 @@ namespace LanguageTools.Backend {
                 case Lemma.WordGender.Neutrum: return "n";
                 case Lemma.WordGender.Weiblich: return "f";
                 case Lemma.WordGender.Plural: return "pl";
+                case Lemma.WordGender.Singular: return "sg";
                 case Lemma.WordGender.Undefined: return "";
                 default: throw new ArgumentException("Impossible value of WordGender received: " + obj);
             }
@@ -25,6 +22,7 @@ namespace LanguageTools.Backend {
                 case "n": return Lemma.WordGender.Neutrum;
                 case "f": return Lemma.WordGender.Weiblich;
                 case "pl": return Lemma.WordGender.Plural;
+                case "sg": return Lemma.WordGender.Singular;
                 case "": return Lemma.WordGender.Undefined;
                 default: throw new ArgumentException("Invalid value for WordGender: " + str);
             }
@@ -32,7 +30,7 @@ namespace LanguageTools.Backend {
     }
 
     public class Lemma {
-        public enum WordGender { Mannlich, Weiblich, Neutrum, Plural, Undefined };
+        public enum WordGender { Mannlich, Weiblich, Neutrum, Singular, Plural, Undefined };
 
         public int Id { get; internal set; }
         public string Word { get; set; }
