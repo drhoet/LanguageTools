@@ -58,6 +58,7 @@
     <Compile Include="AboutBox.Designer.cs">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="InstantLookup.cs" />
     <Compile Include="LanguageToolsRibbon.cs">
       <SubType>Component</SubType>
     </Compile>

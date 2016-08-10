@@ -6,6 +6,18 @@ namespace LanguageTools.Word
 {
     public class WordActiveTextStrategy : ActiveTextStrategy<MSWord.Document>
     {
+        public MSWord.Application Application { get; private set; }
+
+        public WordActiveTextStrategy(MSWord.Application application)
+        {
+            Application = application;
+        }
+
+        public string FindActiveWord()
+        {
+            return FindActiveWord(FindActiveDocument());
+        }
+
         public string FindActiveWord(MSWord.Document doc)
         {
             MSWord.Selection sel = doc.Application.Selection;
@@ -41,5 +53,9 @@ namespace LanguageTools.Word
             return word.Text;
         }
 
+        public MSWord.Document FindActiveDocument()
+        {
+            return Application.ActiveDocument;
+        }
     }
 }

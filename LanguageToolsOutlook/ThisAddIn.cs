@@ -5,7 +5,6 @@ using LanguageTools.Backend;
 using System.Windows.Forms;
 using Microsoft.Office.Tools;
 using Microsoft.Office.Tools.Ribbon;
-using System.ComponentModel;
 using LanguageTools.Common;
 using System.Reflection;
 
@@ -15,12 +14,10 @@ namespace LanguageTools.Outlook
     {
         private LemmaDatabase db;
         private LemmaRepository repo;
-        private string lastLookup = null;
-        private Timer lookupTimer;
+        private InstantLookup<MSOutlook.Inspector> instantLookup;
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
-        private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
+        private bool instantLookupEnabled = Properties.Settings.Default.InstantLookupEnabled;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
-        private OutlookActiveTextStrategy activeTextStrategy = new OutlookActiveTextStrategy();
 
         public Dictionary<MSOutlook.Inspector, InspectorWrapper> InspectorWrappers { get; private set; } = new Dictionary<MSOutlook.Inspector, InspectorWrapper>();
         private MSOutlook.Inspectors inspectors;
@@ -30,9 +27,8 @@ namespace LanguageTools.Outlook
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
-            lookupTimer = new Timer();
-            lookupTimer.Interval = 250;
-            lookupTimer.Tick += LookupWordUnderCursor;
+            instantLookup = new InstantLookup<MSOutlook.Inspector>( new OutlookActiveTextStrategy(Application), 250, repo );
+            instantLookup.OnLemmaFound += InstantLookup_OnLemmaFound;
 
             inspectors = Application.Inspectors;
             inspectors.NewInspector += Inspectors_NewInspector;
@@ -42,13 +38,34 @@ namespace LanguageTools.Outlook
                 Inspectors_NewInspector(inspector);
             }
 
-            ToggleInstantLookup(this, instantLookup, null);
+            ToggleInstantLookup(this, instantLookupEnabled, null);
+        }
+
+        private void InstantLookup_OnLemmaFound(object sender, List<Lemma> found, MSOutlook.Inspector document)
+        {
+            InspectorWrapper wrapper = null;
+            InspectorWrappers.TryGetValue(document, out wrapper);
+            if (wrapper != null)
+            {
+                LookupPane lookupPane = (LookupPane)wrapper.CustomTaskPane.Control;
+                lookupPane.Invoke((Action)delegate
+                {
+                    lookupPane.Item = found[0];
+                    lookupPane.lbxResults.DataSource = found;
+                });
+            }
+
         }
 
         private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
         {
             AboutBox box = new AboutBox(Assembly.GetExecutingAssembly());
             box.ShowDialog();
+        }
+
+        private void PerformLookup(object sender, EventArgs e)
+        {
+            instantLookup.LookupActiveText(sender, e);
         }
 
         private void ToggleLookupPane(object sender, bool value, RibbonControlEventArgs e)
@@ -64,16 +81,9 @@ namespace LanguageTools.Outlook
 
         private void ToggleInstantLookup(object sender, bool value, RibbonControlEventArgs e)
         {
-            if (value)
-            {
-                lookupTimer.Start();
-            }
-            else
-            {
-                lookupTimer.Stop();
-            }
+            instantLookup.Enabled = value;
             //Globals.Ribbons.LanguageToolsRibbon.btnToggleInstantLookup.Checked = value;
-            instantLookup = value;
+            instantLookupEnabled = value;
         }
 
 
@@ -94,71 +104,6 @@ namespace LanguageTools.Outlook
             }
         }
 
-        public void LookupWordUnderCursor(object sender, EventArgs eventArgs)
-        {
-            bool timerRunning = lookupTimer.Enabled;
-            lookupTimer.Stop();
-
-            string searchFor = activeTextStrategy.FindActiveWord(Application.ActiveInspector());
-            if (searchFor.Length > 0)
-            {
-                BackgroundWorker worker = new BackgroundWorker();
-                worker.DoWork += bgw_DoWork;
-                worker.RunWorkerCompleted += bgw_WorkCompleted;
-                SearchParams args = new SearchParams();
-                args.SearchLemma = searchFor;
-                args.TargetWindow = Application.ActiveInspector();
-                worker.RunWorkerAsync(args);
-            }
-
-            if (timerRunning)
-                lookupTimer.Start();
-        }
-
-        private void bgw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            SearchParams args = (SearchParams)e.Argument;
-            string value = args.SearchLemma;
-            if (value != null && value != lastLookup)
-            {
-                lastLookup = value;
-                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
-                if (found.Count == 0)
-                {
-                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
-                }
-                args.Found = found;
-            }
-            e.Result = args;
-        }
-
-        private void bgw_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            SearchParams args = (SearchParams)e.Result;
-            List<Lemma> found = args.Found;
-            if (found != null && found.Count > 0)
-            {
-                InspectorWrapper wrapper = null;
-                InspectorWrappers.TryGetValue(args.TargetWindow, out wrapper);
-                if (wrapper != null)
-                {
-                    LookupPane lookupPane = (LookupPane)wrapper.CustomTaskPane.Control;
-                    lookupPane.Invoke((Action)delegate
-                    {
-                        lookupPane.Item = found[0];
-                        lookupPane.lbxResults.DataSource = found;
-                    });
-                }
-            }
-        }
-
-        private struct SearchParams
-        {
-            public MSOutlook.Inspector TargetWindow { get; set; }
-            public string SearchLemma { get; set; }
-            public List<Lemma> Found { get; set; }
-        }
-
         protected override IRibbonExtension[] CreateRibbonObjects()
         {
             LanguageToolsRibbon.GlobalsFactory = Globals.Factory;
@@ -172,7 +117,7 @@ namespace LanguageTools.Outlook
             ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
             ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
 
-            ribbon.OnLookupClicked += LookupWordUnderCursor;
+            ribbon.OnLookupClicked += PerformLookup;
             ribbon.OnLookupPaneToggled += ToggleLookupPane;
             ribbon.OnInstantLookupToggled += ToggleInstantLookup;
             ribbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;

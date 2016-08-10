@@ -15,22 +15,19 @@ namespace LanguageTools.Word
     {
         private LemmaDatabase db;
         private LemmaRepository repo;
-        private string lastLookup = null;
-        private Timer lookupTimer;
-        private Dictionary<MSWord.Window, CustomTaskPane> taskPaneMap = new Dictionary<MSWord.Window, CustomTaskPane>();
+        private InstantLookup<MSWord.Document> instantLookup;
+        private Dictionary<MSWord.Document, CustomTaskPane> taskPaneMap = new Dictionary<MSWord.Document, CustomTaskPane>();
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
-        private bool instantLookup = Properties.Settings.Default.InstantLookupEnabled;
+        private bool instantLookupEnabled = Properties.Settings.Default.InstantLookupEnabled;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
-        private WordActiveTextStrategy activeTextStrategy = new WordActiveTextStrategy();
 
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
             db = LemmaDatabase.CreateDefaultInstance();
             repo = new LemmaRepository(db);
 
-            lookupTimer = new Timer();
-            lookupTimer.Interval = 250;
-            lookupTimer.Tick += LookupWordUnderCursor;
+            instantLookup = new InstantLookup<MSWord.Document>(new WordActiveTextStrategy(Application), 250, repo);
+            instantLookup.OnLemmaFound += InstantLookup_OnLemmaFound;
 
             if (taskPaneVisible)
             {
@@ -40,19 +37,22 @@ namespace LanguageTools.Word
             Application.DocumentOpen += Application_DocumentOpen;
             Application.DocumentChange += Application_DocumentChange;
 
-            ToggleInstantLookup(this, instantLookup, null);
+            ToggleInstantLookup(this, instantLookupEnabled, null);
         }
 
-        private void LanguageToolsRibbon_OnRibbonCreated(object sender, EventArgs e)
+        private void InstantLookup_OnLemmaFound(object sender, List<Lemma> found, MSWord.Document document)
         {
-            LanguageToolsRibbon ribbon = (LanguageToolsRibbon)sender;
-            ribbon.OnLookupClicked += LookupWordUnderCursor;
-            ribbon.OnLookupPaneToggled += ToggleLookupPane;
-            ribbon.OnInstantLookupToggled += ToggleInstantLookup;
-            ribbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
-
-            ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
-            ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
+            CustomTaskPane ctp = null;
+            taskPaneMap.TryGetValue(document, out ctp);
+            if (ctp != null)
+            {
+                LookupPane lookupPane = (LookupPane)ctp.Control;
+                lookupPane.Invoke((Action)delegate
+                {
+                    lookupPane.Item = found[0];
+                    lookupPane.lbxResults.DataSource = found;
+                });
+            }
         }
 
         private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
@@ -112,18 +112,18 @@ namespace LanguageTools.Word
 
         private void RemoveOrphanedTaskPanes()
         {
-            List<MSWord.Window> removedWindows = new List<MSWord.Window>();
-            foreach (KeyValuePair<MSWord.Window, CustomTaskPane> entry in taskPaneMap)
+            List<MSWord.Document> removedDocuments = new List<MSWord.Document>();
+            foreach (KeyValuePair<MSWord.Document, CustomTaskPane> entry in taskPaneMap)
             {
                 if(entry.Value.Window == null)
                 {
                     CustomTaskPanes.Remove(entry.Value);
-                    removedWindows.Add(entry.Key);
+                    removedDocuments.Add(entry.Key);
                 }
             }
-            foreach(MSWord.Window window in removedWindows)
+            foreach(MSWord.Document document in removedDocuments)
             {
-                taskPaneMap.Remove(window);
+                taskPaneMap.Remove(document);
             }
         }
 
@@ -134,23 +134,19 @@ namespace LanguageTools.Word
             taskPane.Width = paneWidth;
             taskPane.Visible = true;
             taskPane.Control.SizeChanged += TaskPane_SizeChanged;
-            taskPaneMap.Add(taskPane.Window, taskPane);
+            taskPaneMap.Add(doc, taskPane);
+        }
 
-            lastLookup = null; //setting this to null will make sure a new search is done, otherwise the newly opened panels stay empty
+        private void PerformLookup(object sender, EventArgs e)
+        {
+            instantLookup.LookupActiveText(sender, e);
         }
 
         private void ToggleInstantLookup(object sender, bool value, RibbonControlEventArgs e)
         {
-            if (value)
-            {
-                lookupTimer.Start();
-            }
-            else
-            {
-                lookupTimer.Stop();
-            }
+            instantLookup.Enabled = value;
             Globals.Ribbons.LanguageToolsRibbon.btnToggleInstantLookup.Checked = value;
-            instantLookup = value;
+            instantLookupEnabled = value;
         }
 
         private void ToggleLookupPane(object sender, bool visible, RibbonControlEventArgs e)
@@ -166,68 +162,10 @@ namespace LanguageTools.Word
             }
         }
 
-        public void LookupWordUnderCursor(object sender, EventArgs eventArgs)
-        {
-            bool timerRunning = lookupTimer.Enabled;
-            lookupTimer.Stop();
-
-            string searchFor = activeTextStrategy.FindActiveWord(Application.ActiveDocument);
-            if (searchFor.Length > 0)
-            {
-                BackgroundWorker worker = new BackgroundWorker();
-                worker.DoWork += bgw_DoWork;
-                worker.RunWorkerCompleted += bgw_WorkCompleted;
-                SearchParams args = new SearchParams();
-                args.SearchLemma = searchFor;
-                args.TargetWindow = Application.ActiveWindow;
-                worker.RunWorkerAsync(args);
-            }
-
-            if (timerRunning)
-                lookupTimer.Start();
-        }
-
-        private void bgw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            SearchParams args = (SearchParams)e.Argument;
-            string value = args.SearchLemma;
-            if (value != null && value != lastLookup)
-            {
-                lastLookup = value;
-                List<Lemma> found = repo.FindAll(new GermanBaseLemmaSpecification(value));
-                if (found.Count == 0)
-                {
-                    found.AddRange(repo.FindAll(new GermanCompositionEndLemmaSpecification(value)));
-                }
-                args.Found = found;
-            }
-            e.Result = args;
-        }
-
-        private void bgw_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            SearchParams args = (SearchParams)e.Result;
-            List<Lemma> found = args.Found;
-            if (found != null && found.Count > 0)
-            {
-                CustomTaskPane ctp = null;
-                taskPaneMap.TryGetValue(args.TargetWindow, out ctp);
-                if (ctp != null)
-                {
-                    LookupPane lookupPane = (LookupPane)ctp.Control;
-                    lookupPane.Invoke((Action)delegate
-                    {
-                        lookupPane.Item = found[0];
-                        lookupPane.lbxResults.DataSource = found;
-                    });
-                }
-            }
-        }
-
         private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
             Properties.Settings.Default.LookupPaneVisible = taskPaneVisible;
-            Properties.Settings.Default.InstantLookupEnabled = instantLookup;
+            Properties.Settings.Default.InstantLookupEnabled = instantLookupEnabled;
             Properties.Settings.Default.LookupPaneWidth = paneWidth;
             Properties.Settings.Default.Save();
             db.CloseDatabase();
@@ -247,11 +185,16 @@ namespace LanguageTools.Word
             return new IRibbonExtension[] { new LanguageToolsRibbon() };
         }
 
-        private struct SearchParams
+        private void LanguageToolsRibbon_OnRibbonCreated(object sender, EventArgs e)
         {
-            public MSWord.Window TargetWindow { get; set; }
-            public string SearchLemma { get; set; }
-            public List<Lemma> Found { get; set; }
+            LanguageToolsRibbon ribbon = (LanguageToolsRibbon)sender;
+            ribbon.OnLookupClicked += PerformLookup;
+            ribbon.OnLookupPaneToggled += ToggleLookupPane;
+            ribbon.OnInstantLookupToggled += ToggleInstantLookup;
+            ribbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
+
+            ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
+            ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
         }
 
         #region VSTO generated code
