@@ -28,7 +28,6 @@ namespace LanguageTools.Outlook
             repo = new LemmaRepository(db);
 
             instantLookup = new InstantLookup<MSOutlook.Inspector>( new OutlookActiveTextStrategy(Application), 250, repo );
-            instantLookup.OnLemmaFound += InstantLookup_OnLemmaFound;
 
             inspectors = Application.Inspectors;
             inspectors.NewInspector += Inspectors_NewInspector;
@@ -40,23 +39,7 @@ namespace LanguageTools.Outlook
 
             ToggleInstantLookup(this, instantLookupEnabled, null);
         }
-
-        private void InstantLookup_OnLemmaFound(object sender, List<Lemma> found, MSOutlook.Inspector document)
-        {
-            InspectorWrapper wrapper = null;
-            InspectorWrappers.TryGetValue(document, out wrapper);
-            if (wrapper != null)
-            {
-                LookupPane lookupPane = (LookupPane)wrapper.CustomTaskPane.Control;
-                lookupPane.Invoke((Action)delegate
-                {
-                    lookupPane.Item = found[0];
-                    lookupPane.lbxResults.DataSource = found;
-                });
-            }
-
-        }
-
+        
         private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
         {
             AboutBox box = new AboutBox(Assembly.GetExecutingAssembly());
@@ -100,7 +83,7 @@ namespace LanguageTools.Outlook
         {
             if (Inspector.CurrentItem is MSOutlook.MailItem)
             {
-                InspectorWrappers.Add(Inspector, new InspectorWrapper(Inspector));
+                InspectorWrappers.Add(Inspector, new InspectorWrapper(Inspector, instantLookup));
             }
         }
 

@@ -20,7 +20,22 @@ namespace LanguageTools.Common
             }
             set
             {
-                lookupTimer.Enabled = value;
+                enabled = value;
+                lookupTimer.Enabled = value && !Paused;
+            }
+        }
+
+        private bool paused;
+        public bool Paused
+        {
+            get
+            {
+                return paused;
+            }
+            set
+            {
+                paused = value;
+                lookupTimer.Enabled = !value && Enabled;
             }
         }
 
@@ -34,6 +49,7 @@ namespace LanguageTools.Common
         {
             ActiveTextStrategy = strategy;
             enabled = false;
+            paused = false;
 
             lookupTimer = new Timer();
             lookupTimer.Interval = interval;
