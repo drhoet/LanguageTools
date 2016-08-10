@@ -20,25 +20,29 @@ namespace LanguageTools.Word
 
         public string FindActiveWord(MSWord.Document doc)
         {
-            MSWord.Selection sel = doc.Application.Selection;
             string searchFor = "";
-            switch (sel.Type)
+
+            MSWord.Selection sel = doc.Application.Selection;
+            if (sel != null)
             {
-                case MSWord.WdSelectionType.wdSelectionNormal:
-                    if (sel.Text.Length == 1)
-                    {
+                switch (sel.Type)
+                {
+                    case MSWord.WdSelectionType.wdSelectionNormal:
+                        if (sel.Text.Length == 1)
+                        {
+                            searchFor = GetCompleteWordAt(sel);
+                        }
+                        else
+                        {
+                            searchFor = sel.Text;
+                        }
+                        break;
+                    case MSWord.WdSelectionType.wdSelectionIP:
                         searchFor = GetCompleteWordAt(sel);
-                    }
-                    else
-                    {
-                        searchFor = sel.Text;
-                    }
-                    break;
-                case MSWord.WdSelectionType.wdSelectionIP:
-                    searchFor = GetCompleteWordAt(sel);
-                    break;
-                default:
-                    throw new InvalidOperationException("Unknown selection type: " + sel.Type.ToString());
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown selection type: " + sel.Type.ToString());
+                }
             }
 
             return searchFor.Trim();
