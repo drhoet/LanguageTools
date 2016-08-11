@@ -23,6 +23,9 @@ namespace LanguageTools.Outlook
 
             taskPane = Globals.ThisAddIn.CustomTaskPanes.Add(new LookupPane(), "German Grammar", inspector);
             taskPane.Visible = Properties.Settings.Default.LookupPaneVisible;
+            taskPane.Width = Properties.Settings.Default.LookupPaneWidth;
+            taskPane.Control.Tag = taskPane;
+            taskPane.Control.SizeChanged += Control_SizeChanged;
         }
 
         private void InstantLookup_OnLemmaFound(object sender, System.Collections.Generic.List<Backend.Lemma> found, MSOutlook.Inspector document)
@@ -60,6 +63,7 @@ namespace LanguageTools.Outlook
 
         private void InspectorWrapper_Close()
         {
+            taskPane.Control.SizeChanged -= Control_SizeChanged;
             Globals.ThisAddIn.CustomTaskPanes.Remove(taskPane);
             taskPane = null;
 
@@ -74,6 +78,12 @@ namespace LanguageTools.Outlook
             inspector = null;
 
             Properties.Settings.Default.Save(); //need to do this here, as I can't do it in the shutdown of the addon...
+        }
+
+        private void Control_SizeChanged(object sender, EventArgs e)
+        {
+            // the tag was set in AddTaskPane. Ugly hack, I know.
+            Properties.Settings.Default.LookupPaneWidth = ((CustomTaskPane)((LookupPane)sender).Tag).Width;
         }
 
         public CustomTaskPane CustomTaskPane
