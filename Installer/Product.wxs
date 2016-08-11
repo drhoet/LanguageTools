@@ -33,6 +33,7 @@
       <ComponentRef Id="CMP_OutlookAddin.config" />
       <ComponentRef Id="CMP_OutlookVstoManifest" />
       <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll" />
+      <ComponentRef Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll" />
       <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll" />
       <ComponentRef Id="CMP_Office2007Hklm"/>
     </Feature>
@@ -117,6 +118,9 @@
       </Component>
       <Component Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll">
         <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Common.v4.0.Utilities.dll" KeyPath="yes"/>
+      </Component>
+      <Component Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll">
+        <File Source="$(var.LanguageToolsOutlook.TargetDir)Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll" KeyPath="yes"/>
       </Component>
       <!--Component Id="CMP_Microsoft.Office.Tools.v4.0.Framework.dll">
         <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.v4.0.Framework.dll" KeyPath="yes"/>
