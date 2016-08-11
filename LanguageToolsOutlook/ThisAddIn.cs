@@ -16,7 +16,6 @@ namespace LanguageTools.Outlook
         private LemmaRepository repo;
         private InstantLookup<MSOutlook.Inspector> instantLookup;
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
-        private bool instantLookupEnabled = Properties.Settings.Default.InstantLookupEnabled;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
 
         public Dictionary<MSOutlook.Inspector, InspectorWrapper> InspectorWrappers { get; private set; } = new Dictionary<MSOutlook.Inspector, InspectorWrapper>();
@@ -28,6 +27,8 @@ namespace LanguageTools.Outlook
             repo = new LemmaRepository(db);
 
             instantLookup = new InstantLookup<MSOutlook.Inspector>( new OutlookActiveTextStrategy(Application), 250, repo );
+            instantLookup.Paused = true; // pause it, opening a window will unpause it...
+            instantLookup.Enabled = Properties.Settings.Default.InstantLookupEnabled;
 
             inspectors = Application.Inspectors;
             inspectors.NewInspector += Inspectors_NewInspector;
@@ -36,40 +37,8 @@ namespace LanguageTools.Outlook
             {
                 Inspectors_NewInspector(inspector);
             }
-
-            ToggleInstantLookup(this, instantLookupEnabled, null);
         }
         
-        private void LanguageToolsRibbon_OnInfoClicked(object sender, EventArgs e)
-        {
-            AboutBox box = new AboutBox(Assembly.GetExecutingAssembly());
-            box.ShowDialog();
-        }
-
-        private void PerformLookup(object sender, EventArgs e)
-        {
-            instantLookup.LookupActiveText(sender, e);
-        }
-
-        private void ToggleLookupPane(object sender, bool value, RibbonControlEventArgs e)
-        {
-            MSOutlook.Inspector inspector = (MSOutlook.Inspector)e.Control.Context;
-            InspectorWrapper inspectorWrapper = Globals.ThisAddIn.InspectorWrappers[inspector];
-            CustomTaskPane taskPane = inspectorWrapper.CustomTaskPane;
-            if (taskPane != null)
-            {
-                taskPane.Visible = ((RibbonToggleButton)sender).Checked;
-            }
-        }
-
-        private void ToggleInstantLookup(object sender, bool value, RibbonControlEventArgs e)
-        {
-            instantLookup.Enabled = value;
-            //Globals.Ribbons.LanguageToolsRibbon.btnToggleInstantLookup.Checked = value;
-            instantLookupEnabled = value;
-        }
-
-
         private void ThisAddIn_Shutdown(object sender, EventArgs e)
         {
             // Note: Outlook no longer raises this event. If you have code that 
@@ -100,11 +69,42 @@ namespace LanguageTools.Outlook
             ribbon.btnToggleInstantLookup.Checked = Properties.Settings.Default.InstantLookupEnabled;
             ribbon.btnToggleLookupPane.Checked = Properties.Settings.Default.LookupPaneVisible;
 
-            ribbon.OnLookupClicked += PerformLookup;
-            ribbon.OnLookupPaneToggled += ToggleLookupPane;
-            ribbon.OnInstantLookupToggled += ToggleInstantLookup;
-            ribbon.OnInfoClicked += LanguageToolsRibbon_OnInfoClicked;
+            ribbon.OnLookupClicked += Ribbon_OnLookupClicked;
+            ribbon.OnLookupPaneToggled += Ribbon_OnLookupPaneToggled;
+            ribbon.OnInstantLookupToggled += Ribbon_OnInstantLookupToggled;
+            ribbon.OnInfoClicked += Ribbon_OnInfoClicked;
         }
+
+        private void Ribbon_OnLookupClicked(object sender, EventArgs e)
+        {
+            instantLookup.LookupActiveText(sender, e);
+        }
+
+        private void Ribbon_OnInfoClicked(object sender, EventArgs e)
+        {
+            AboutBox box = new AboutBox(Assembly.GetExecutingAssembly());
+            box.ShowDialog();
+        }
+
+        private void Ribbon_OnInstantLookupToggled(object sender, bool value, RibbonControlEventArgs e)
+        {
+            instantLookup.Enabled = value;
+            Properties.Settings.Default.InstantLookupEnabled = value;
+        }
+
+        private void Ribbon_OnLookupPaneToggled(object sender, bool value, RibbonControlEventArgs e)
+        {
+            MSOutlook.Inspector inspector = (MSOutlook.Inspector)e.Control.Context;
+            InspectorWrapper inspectorWrapper = Globals.ThisAddIn.InspectorWrappers[inspector];
+            CustomTaskPane taskPane = inspectorWrapper.CustomTaskPane;
+            if (taskPane != null)
+            {
+                taskPane.Visible = value;
+            }
+
+            Properties.Settings.Default.LookupPaneVisible = value;
+        }
+
 
         #region VSTO generated code
 

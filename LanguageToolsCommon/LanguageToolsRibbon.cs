@@ -7,7 +7,6 @@ namespace LanguageTools.Common
 
     public partial class LanguageToolsRibbon
     {
-
         public event EventHandler OnLookupClicked;
         public event ToggleEventHandler OnLookupPaneToggled;
         public event ToggleEventHandler OnInstantLookupToggled;
