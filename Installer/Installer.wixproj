@@ -40,6 +40,22 @@
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
       <RefTargetDir>INSTALLFOLDER</RefTargetDir>
     </ProjectReference>
+    <ProjectReference Include="..\LanguageToolsCommon\LanguageToolsCommon.csproj">
+      <Name>LanguageToolsCommon</Name>
+      <Project>{d85411b9-b199-4b30-9f9a-593408826b8e}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\LanguageToolsOutlook\LanguageToolsOutlook.csproj">
+      <Name>LanguageToolsOutlook</Name>
+      <Project>{53d160c0-9357-4ed3-b4b5-8aa2450c2052}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
     <ProjectReference Include="..\LanguageToolsWord\LanguageToolsWord.csproj">
       <Name>LanguageToolsWord</Name>
       <Project>{c96b3910-a547-473d-be37-4659c33dd0ff}</Project>
