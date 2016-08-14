@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="Language Tools" Language="1033" Version="1.0.0.0" Manufacturer="Dries Hoet" UpgradeCode="bd65b9ff-0ced-416e-aaef-108663c49f8b">
+  <Product Id="*" Name="Language Tools" Language="1033" Version="1.0.0.1" Manufacturer="drhoet" UpgradeCode="bd65b9ff-0ced-416e-aaef-108663c49f8b">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -11,8 +11,9 @@
 
     <Feature Id="FEAT_Core" Title="Language Tools Core" Level="1">
       <ComponentRef Id="CMP_DatabaseManager" />
-      <ComponentRef Id="CMP_SQLite.dll" />
-      <ComponentRef Id="CMP_SQLite_Interop.dll" />
+      <ComponentRef Id="CMP_SQLite" />
+      <ComponentRef Id="CMP_SQLite_Interop86" />
+      <ComponentRef Id="CMP_SQLite_Interop64" />
       <ComponentRef Id="CMP_BackendLib" />
     </Feature>
     <Feature Id="FEAT_WordAddin" Title="Language Tools Word Addin" Level="1" Absent="allow">
@@ -21,8 +22,8 @@
       <ComponentRef Id="CMP_WordAddin.manifest" />
       <ComponentRef Id="CMP_WordAddin.config" />
       <ComponentRef Id="CMP_WordVstoManifest" />
-      <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll" />
-      <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll" />
+      <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities" />
+      <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime" />
       <ComponentRef Id="CMP_Office2007Hklm"/>
     </Feature>
     <Feature Id="FEAT_OutlookAddin" Title="Language Tools Outlook Addin" Level="1" Absent="allow">
@@ -32,9 +33,9 @@
       <ComponentRef Id="CMP_OutlookAddin.manifest" />
       <ComponentRef Id="CMP_OutlookAddin.config" />
       <ComponentRef Id="CMP_OutlookVstoManifest" />
-      <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll" />
-      <ComponentRef Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll" />
-      <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll" />
+      <ComponentRef Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities" />
+      <ComponentRef Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities" />
+      <ComponentRef Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime" />
       <ComponentRef Id="CMP_Office2007Hklm"/>
     </Feature>
 
@@ -54,7 +55,10 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="Language Tools" />
+        <Directory Id="INSTALLFOLDER" Name="Language Tools">
+          <Directory Id="INSTALLFOLDER_NATIVE_X86" Name="x86"/>
+          <Directory Id="INSTALLFOLDER_NATIVE_X64" Name="x64"/>
+        </Directory>
       </Directory>
     </Directory>
   </Fragment>
@@ -66,28 +70,25 @@
 
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="CMP_DatabaseManager">
-        <File Source="$(var.DatabaseManager.TargetPath)" KeyPath="yes"/>
+        <File Id="CMP_DatabaseManager" Source="$(var.DatabaseManager.TargetPath)" KeyPath="yes"/>
       </Component>
-      <Component Id="CMP_SQLite.dll">
-        <File Source="$(var.DatabaseManager.TargetDir)System.Data.SQLite.dll" KeyPath="yes"/>
-      </Component>
-      <Component Id="CMP_SQLite_Interop.dll">
-        <File Source="$(var.DatabaseManager.TargetDir)x86/SQLite.Interop.dll" KeyPath="yes"/>
+      <Component Id="CMP_SQLite">
+        <File Id="CMP_SQLite" Source="$(var.DatabaseManager.TargetDir)System.Data.SQLite.dll" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_BackendLib">
-        <File Source="$(var.LanguageToolsBackend.TargetPath)" KeyPath="yes"/>
+        <File Id="CMP_BackendLib" Source="$(var.LanguageToolsBackend.TargetPath)" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_CommonLib">
-        <File Source="$(var.LanguageToolsCommon.TargetPath)" KeyPath="yes"/>
+        <File Id="CMP_CommonLib" Source="$(var.LanguageToolsCommon.TargetPath)" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_WordAddin">
-        <File Source="$(var.LanguageToolsWord.TargetPath)" KeyPath="yes"/>
+        <File Id="CMP_WordAddin" Source="$(var.LanguageToolsWord.TargetPath)" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_WordAddin.manifest">
-        <File Source="$(var.LanguageToolsWord.TargetPath).manifest" KeyPath="yes"/>
+        <File Id="CMP_WordAddin.manifest" Source="$(var.LanguageToolsWord.TargetPath).manifest" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_WordAddin.config">
-        <File Source="$(var.LanguageToolsWord.TargetPath).config" KeyPath="yes"/>
+        <File Id="CMP_WordAddin.config" Source="$(var.LanguageToolsWord.TargetPath).config" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_WordVstoManifest">
         <File Id="FILE_WordVstoManifest" Source="$(var.LanguageToolsWord.TargetDir)$(var.LanguageToolsWord.TargetName).vsto" KeyPath="yes"/>
@@ -99,13 +100,13 @@
         </RegistryKey>
       </Component>
       <Component Id="CMP_OutlookAddin">
-        <File Source="$(var.LanguageToolsOutlook.TargetPath)" KeyPath="yes"/>
+        <File Id="CMP_OutlookAddin" Source="$(var.LanguageToolsOutlook.TargetPath)" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_OutlookAddin.manifest">
-        <File Source="$(var.LanguageToolsOutlook.TargetPath).manifest" KeyPath="yes"/>
+        <File Id="CMP_OutlookAddin.manifest" Source="$(var.LanguageToolsOutlook.TargetPath).manifest" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_OutlookAddin.config">
-        <File Source="$(var.LanguageToolsOutlook.TargetPath).config" KeyPath="yes"/>
+        <File Id="CMP_OutlookAddin.config" Source="$(var.LanguageToolsOutlook.TargetPath).config" KeyPath="yes"/>
       </Component>
       <Component Id="CMP_OutlookVstoManifest">
         <File Id="FILE_OutlookVstoManifest" Source="$(var.LanguageToolsOutlook.TargetDir)$(var.LanguageToolsOutlook.TargetName).vsto" KeyPath="yes"/>
@@ -116,11 +117,13 @@
           <RegistryValue Name="Manifest" Value="file:///[#FILE_OutlookVstoManifest]|vstolocal" Type="string" Action="write" />
         </RegistryKey>
       </Component>
-      <Component Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities.dll">
-        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Common.v4.0.Utilities.dll" KeyPath="yes"/>
+      <Component Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities">
+        <File Id="CMP_Microsoft.Office.Tools.Common.v4.0.Utilities"
+              Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Common.v4.0.Utilities.dll" KeyPath="yes"/>
       </Component>
-      <Component Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll">
-        <File Source="$(var.LanguageToolsOutlook.TargetDir)Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll" KeyPath="yes"/>
+      <Component Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities">
+        <File Id="CMP_Microsoft.Office.Tools.Outlook.v4.0.Utilities"
+              Source="$(var.LanguageToolsOutlook.TargetDir)Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll" KeyPath="yes"/>
       </Component>
       <!--Component Id="CMP_Microsoft.Office.Tools.v4.0.Framework.dll">
         <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.v4.0.Framework.dll" KeyPath="yes"/>
@@ -128,8 +131,9 @@
       <!--Component Id="CMP_Microsoft.Office.Tools.Word.dll">
         <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.Office.Tools.Word.dll" KeyPath="yes"/>
       </Component-->
-      <Component Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime.dll">
-        <File Source="$(var.LanguageToolsWord.TargetDir)Microsoft.VisualStudio.Tools.Applications.Runtime.dll" KeyPath="yes"/>
+      <Component Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime">
+        <File Id="CMP_Microsoft.VisualStudio.Tools.Applications.Runtime"
+              Source="$(var.LanguageToolsWord.TargetDir)Microsoft.VisualStudio.Tools.Applications.Runtime.dll" KeyPath="yes"/>
       </Component>
 
       <Component Id="CMP_Office2007Hklm" Permanent="yes">
@@ -139,5 +143,12 @@
         </RegistryKey>
       </Component>
     </ComponentGroup>
+  
+    <Component Id="CMP_SQLite_Interop86" Directory="INSTALLFOLDER_NATIVE_X86">
+      <File Id="CMP_SQLite_Interop86" Source="$(var.DatabaseManager.TargetDir)x86/SQLite.Interop.dll" KeyPath="yes"/>
+    </Component>
+    <Component Id="CMP_SQLite_Interop64" Directory="INSTALLFOLDER_NATIVE_X64">
+      <File Id="CMP_SQLite_Interop64" Source="$(var.DatabaseManager.TargetDir)x64/SQLite.Interop.dll" KeyPath="yes"/>
+    </Component>
   </Fragment>
 </Wix>
