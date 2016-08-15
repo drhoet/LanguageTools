@@ -107,5 +107,15 @@ namespace LanguageTools.Backend {
         internal DbDataReader ExecuteReader(string queryText, Dictionary<string, object> parameters, CommandBehavior options) {
             return CreateCommand(queryText, parameters).ExecuteReader(options);
         }
+
+        /// <summary>
+        /// Enabled super-fast mode. This writes the journal only to memory, meaning in case of app-crash, you lose everything.
+        /// </summary>
+        public void EnableFastInsertMode()
+        {
+            ExecuteNonQuery("PRAGMA synchronous = OFF", null);
+            ExecuteNonQuery("PRAGMA journal_mode = MEMORY", null);
+        }
+
     }
 }

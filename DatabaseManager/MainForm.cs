@@ -24,6 +24,7 @@ namespace DatabaseManager {
         }
 
         private void bgwImportDictionary_DoWork(object sender, DoWorkEventArgs e) {
+            db.EnableFastInsertMode();
             db.OpenChangeSet();
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
