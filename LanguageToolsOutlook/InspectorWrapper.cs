@@ -28,7 +28,7 @@ namespace LanguageTools.Outlook
             taskPane.Control.SizeChanged += Control_SizeChanged;
         }
 
-        private void InstantLookup_OnLemmaFound(object sender, System.Collections.Generic.List<Backend.Lemma> found, MSOutlook.Inspector document)
+        private void InstantLookup_OnLemmaFound(object sender, System.Collections.Generic.List<Backend.Noun> found, MSOutlook.Inspector document)
         {
             if (document == inspector)
             {

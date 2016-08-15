@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
-    public class ExactLemmaSpecification : ISqlSpecification<Lemma> {
+    public class ExactLemmaSpecification : ISqlSpecification<Noun> {
         public string SearchFor { get; private set; }
 
         public string Sql { get; private set; }
@@ -19,8 +19,8 @@ namespace LanguageTools.Backend {
             Parameters.Add("@word", SearchFor);
         }
 
-        public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Word, SearchFor, CompareOptions.IgnoreCase) == 0;
+        public bool IsSatisfiedBy(Noun entity) {
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Lemma, SearchFor, CompareOptions.IgnoreCase) == 0;
         }
     }
 }

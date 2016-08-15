@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
-    public class GermanBaseLemmaSpecification : ISqlSpecification<Lemma> {
+    public class GermanBaseLemmaSpecification : ISqlSpecification<Noun> {
         public string SearchFor { get; private set; }
 
         public string Sql { get; private set; }
@@ -29,22 +29,22 @@ namespace LanguageTools.Backend {
             Parameters.Add("@word", searchFor);
         }
 
-        public bool IsSatisfiedBy(Lemma entity) {
+        public bool IsSatisfiedBy(Noun entity) {
             if(entity == null) {
                 return false;
             }
             switch(entity.Gender) {
-                case Lemma.WordGender.Mannlich:
-                case Lemma.WordGender.Neutrum:
+                case Noun.NounGender.Mannlich:
+                case Noun.NounGender.Neutrum:
                     List<string> baseWords = RemoveGermanGenitivInflictions(SearchFor);
                     foreach(string baseWord in baseWords) {
-                        if(GermanEqualsIgnoreCase(entity.Word, baseWord)) {
+                        if(GermanEqualsIgnoreCase(entity.Lemma, baseWord)) {
                             return true;
                         }
                     }
                     return false;
                 default:
-                    return GermanEqualsIgnoreCase(entity.Word, SearchFor);
+                    return GermanEqualsIgnoreCase(entity.Lemma, SearchFor);
             }
         }
 

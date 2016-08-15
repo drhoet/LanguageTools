@@ -6,7 +6,7 @@ using System.Windows.Forms;
 namespace LanguageTools.Common
 {
     public partial class LookupPane : UserControl {
-        public Lemma Item { get; set; }
+        public Noun Item { get; set; }
 
         private Font defaultHeaderFont, defaultTextFont;
         private FontFamily headerFontFamily = new FontFamily("times new roman");
@@ -18,26 +18,26 @@ namespace LanguageTools.Common
         }
 
         private void lbxResults_DrawItem(object sender, DrawItemEventArgs e) {
-            Lemma lemma = (Lemma)lbxResults.Items[e.Index];
+            Noun lemma = (Noun)lbxResults.Items[e.Index];
             e.DrawBackground();
             Graphics g = e.Graphics;
             Color bgColor;
             switch(lemma.Gender) {
-                case Lemma.WordGender.Mannlich: bgColor = Color.SkyBlue; break;
-                case Lemma.WordGender.Weiblich: bgColor = Color.Pink; break;
-                case Lemma.WordGender.Neutrum: bgColor = Color.Gold; break;
+                case Noun.NounGender.Mannlich: bgColor = Color.SkyBlue; break;
+                case Noun.NounGender.Weiblich: bgColor = Color.Pink; break;
+                case Noun.NounGender.Neutrum: bgColor = Color.Gold; break;
                 default: bgColor = Color.LightGoldenrodYellow; break;
             }
             g.FillRectangle(new SolidBrush(bgColor), e.Bounds);
 
-            float scaleFactor = FindFontScaleHor(g, string.Format("{0} ({1})", lemma.Word, WordGenderConvert.ToString(lemma.Gender)), defaultHeaderFont, e.Bounds.Width);
+            float scaleFactor = FindFontScaleHor(g, string.Format("{0} ({1})", lemma.Lemma, WordGenderConvert.ToString(lemma.Gender)), defaultHeaderFont, e.Bounds.Width);
             Font lemmaHeaderFont = new Font(headerFontFamily, 25 * scaleFactor, FontStyle.Bold, GraphicsUnit.Pixel);
             Font lemmaGenderFont = new Font(headerFontFamily, 15 * scaleFactor, FontStyle.Italic, GraphicsUnit.Pixel);
 
             int headerHeight = GetFontLineHeight(lemmaHeaderFont);
             Rectangle lemmaRect = new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, headerHeight);
-            lemmaRect.Width = Convert.ToInt32(Math.Ceiling(g.MeasureString(lemma.Word, lemmaHeaderFont).Width));
-            g.DrawString(lemma.Word, lemmaHeaderFont, Brushes.LightSlateGray, lemmaRect);
+            lemmaRect.Width = Convert.ToInt32(Math.Ceiling(g.MeasureString(lemma.Lemma, lemmaHeaderFont).Width));
+            g.DrawString(lemma.Lemma, lemmaHeaderFont, Brushes.LightSlateGray, lemmaRect);
 
             int genderOffset = GetFontAscent(lemmaHeaderFont) - GetFontAscent(lemmaGenderFont);
             int genderHeight = GetFontLineHeight(lemmaGenderFont);
@@ -69,9 +69,9 @@ namespace LanguageTools.Common
         }
 
         private void lbxResults_MeasureItem(object sender, MeasureItemEventArgs e) {
-            Lemma lemma = (Lemma)lbxResults.Items[e.Index];
+            Noun lemma = (Noun)lbxResults.Items[e.Index];
 
-            float scaleFactor = FindFontScaleHor(e.Graphics, string.Format("{0} ({1})", lemma.Word, WordGenderConvert.ToString(lemma.Gender)), defaultHeaderFont, lbxResults.Width);
+            float scaleFactor = FindFontScaleHor(e.Graphics, string.Format("{0} ({1})", lemma.Lemma, WordGenderConvert.ToString(lemma.Gender)), defaultHeaderFont, lbxResults.Width);
             Font lemmaHeaderFont = new Font(headerFontFamily, 25 * scaleFactor, FontStyle.Bold, GraphicsUnit.Pixel);
             Font lemmaGenderFont = new Font(headerFontFamily, 15 * scaleFactor, FontStyle.Italic, GraphicsUnit.Pixel);
 

@@ -40,7 +40,7 @@ namespace LanguageTools.Word
             ToggleInstantLookup(this, instantLookupEnabled, null);
         }
 
-        private void InstantLookup_OnLemmaFound(object sender, List<Lemma> found, MSWord.Document document)
+        private void InstantLookup_OnLemmaFound(object sender, List<Noun> found, MSWord.Document document)
         {
             CustomTaskPane ctp = null;
             taskPaneMap.TryGetValue(document, out ctp);

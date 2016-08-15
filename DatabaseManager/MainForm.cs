@@ -7,7 +7,7 @@ using System.Windows.Forms;
 namespace DatabaseManager {
     public partial class MainForm : Form {
         private bool dbHasChanges = false;
-        private Cache<Lemma> memoryCache;
+        private Cache<Noun> memoryCache;
         private ProgressDialog progressDialog = new ProgressDialog();
         private LemmaDatabase db;
         private LemmaRepository repo;
@@ -15,9 +15,9 @@ namespace DatabaseManager {
 
         public MainForm() {
             InitializeComponent();
-            foreach(Lemma.WordGender g in Enum.GetValues(typeof(Lemma.WordGender))) {
+            foreach(Noun.NounGender g in Enum.GetValues(typeof(Noun.NounGender))) {
                 this.gender.Items.Add(g);
-                this.gender.ValueType = typeof(Lemma.WordGender);
+                this.gender.ValueType = typeof(Noun.NounGender);
             }
 
             LoadDatabase(null);
@@ -92,10 +92,10 @@ namespace DatabaseManager {
             if(e.RowIndex == dgvData.RowCount - 1) {
                 e.Value = null;
             } else {
-                Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+                Noun l = memoryCache.RetrieveElement(e.RowIndex);
                 switch(e.ColumnIndex) {
                     case 0: e.Value = l.Id; break;
-                    case 1: e.Value = l.Word; break;
+                    case 1: e.Value = l.Lemma; break;
                     case 2: e.Value = l.Gender; break;
                     default: e.Value = null; break;
                 }
@@ -108,21 +108,21 @@ namespace DatabaseManager {
             }
             dbHasChanges = true;
             if(e.RowIndex >= repo.Count) {
-                Lemma l = new Lemma();
+                Noun l = new Noun();
                 SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
                 repo.Add(l);
             } else {
-                Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+                Noun l = memoryCache.RetrieveElement(e.RowIndex);
                 SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
                 repo.Update(l);
             }
             dbHasChanges = true;
         }
 
-        private void SetLemmaColumnValue(Lemma l, int columnIndex, object value) {
+        private void SetLemmaColumnValue(Noun l, int columnIndex, object value) {
             switch(columnIndex) {
-                case 1: l.Word = Convert.ToString(value); break;
-                case 2: l.Gender = (Lemma.WordGender)value; break;
+                case 1: l.Lemma = Convert.ToString(value); break;
+                case 2: l.Gender = (Noun.NounGender)value; break;
                 default: throw new ArgumentException(string.Format("Cannot set column {0} to value {1}", columnIndex, value));
             }
         }
@@ -133,7 +133,7 @@ namespace DatabaseManager {
             }
             dbHasChanges = true;
 
-            Lemma l = memoryCache.RetrieveElement(e.RowIndex);
+            Noun l = memoryCache.RetrieveElement(e.RowIndex);
             repo.RemoveById(l.Id);
             memoryCache.ReloadAll();
         }
@@ -177,7 +177,7 @@ namespace DatabaseManager {
         private void RefreshGridView() {
             updateDatabase = false;
             dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
-            memoryCache = new Cache<Lemma>(repo, 100);
+            memoryCache = new Cache<Noun>(repo, 100);
             dgvData.Rows.Clear();
             dgvData.RowCount = repo.Count + 1;
             updateDatabase = true;

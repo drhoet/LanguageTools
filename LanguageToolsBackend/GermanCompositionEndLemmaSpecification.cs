@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
-    public class GermanCompositionEndLemmaSpecification : ISqlSpecification<Lemma> {
+    public class GermanCompositionEndLemmaSpecification : ISqlSpecification<Noun> {
         public string SearchFor { get; private set; }
 
         public string Sql { get; private set; }
@@ -19,8 +19,8 @@ namespace LanguageTools.Backend {
             Parameters.Add("@word", searchFor);
         }
 
-        public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Word, CompareOptions.IgnoreCase);
+        public bool IsSatisfiedBy(Noun entity) {
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Lemma, CompareOptions.IgnoreCase);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {

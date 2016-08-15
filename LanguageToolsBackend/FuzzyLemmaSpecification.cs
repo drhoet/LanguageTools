@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
-    public class FuzzyLemmaSpecification : ISqlSpecification<Lemma> {
+    public class FuzzyLemmaSpecification : ISqlSpecification<Noun> {
         public string SearchFor { get; private set; }
 
         public string Sql { get; private set; }
@@ -19,8 +19,8 @@ namespace LanguageTools.Backend {
             Parameters.Add("@word", "%" + SearchFor.Replace("%", "^%").Replace("_", "^_").Replace("^", "^^") + "%");
         }
 
-        public bool IsSatisfiedBy(Lemma entity) {
-            return entity != null && GermanEqualsIgnoreCase(entity.Word, SearchFor);
+        public bool IsSatisfiedBy(Noun entity) {
+            return entity != null && GermanEqualsIgnoreCase(entity.Lemma, SearchFor);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {

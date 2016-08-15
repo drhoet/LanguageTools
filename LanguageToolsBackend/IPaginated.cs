@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace LanguageTools.Backend {
     public interface IPaginated<T> {
-
         List<T> SupplyPageOfData(int pageIndex, int pageSize);
     }
 }

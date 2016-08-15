@@ -39,7 +39,7 @@ namespace LanguageTools.Common
             }
         }
 
-        public delegate void LemmaFoundEventHandler(object sender,  List<Lemma> found, T document);
+        public delegate void LemmaFoundEventHandler(object sender,  List<Noun> found, T document);
         public event LemmaFoundEventHandler OnLemmaFound;
 
         private Timer lookupTimer;
@@ -86,7 +86,7 @@ namespace LanguageTools.Common
             if (value != null && value != lastLookup)
             {
                 lastLookup = value;
-                List<Lemma> found = LemmaRepository.FindAll(new GermanBaseLemmaSpecification(value));
+                List<Noun> found = LemmaRepository.FindAll(new GermanBaseLemmaSpecification(value));
                 if (found.Count == 0)
                 {
                     found.AddRange(LemmaRepository.FindAll(new GermanCompositionEndLemmaSpecification(value)));
@@ -99,7 +99,7 @@ namespace LanguageTools.Common
         private void bgw_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             SearchParams args = (SearchParams)e.Result;
-            List<Lemma> found = args.Found;
+            List<Noun> found = args.Found;
             if (found != null && found.Count > 0)
             {
                 OnLemmaFound?.Invoke(this, found, args.TargetWindow);
@@ -110,7 +110,7 @@ namespace LanguageTools.Common
         {
             public T TargetWindow { get; set; }
             public string SearchLemma { get; set; }
-            public List<Lemma> Found { get; set; }
+            public List<Noun> Found { get; set; }
         }
     }
 }

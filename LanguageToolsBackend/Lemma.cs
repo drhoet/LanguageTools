@@ -3,47 +3,47 @@
 namespace LanguageTools.Backend {
     public class WordGenderConvert {
 
-        public static string ToString(Lemma.WordGender obj) {
+        public static string ToString(Noun.NounGender obj) {
             switch(obj) {
-                case Lemma.WordGender.Mannlich: return "m";
-                case Lemma.WordGender.Neutrum: return "n";
-                case Lemma.WordGender.Weiblich: return "f";
-                case Lemma.WordGender.Plural: return "pl";
-                case Lemma.WordGender.Singular: return "sg";
-                case Lemma.WordGender.Undefined: return "";
-                default: throw new ArgumentException("Impossible value of WordGender received: " + obj);
+                case Noun.NounGender.Mannlich: return "m";
+                case Noun.NounGender.Neutrum: return "n";
+                case Noun.NounGender.Weiblich: return "f";
+                case Noun.NounGender.Plural: return "pl";
+                case Noun.NounGender.Singular: return "sg";
+                case Noun.NounGender.Undefined: return "";
+                default: throw new ArgumentException("Impossible value of NounGender received: " + obj);
             }
         }
 
-        public static Lemma.WordGender ToGender(object obj) {
+        public static Noun.NounGender ToGender(object obj) {
             string str = Convert.ToString(obj);
             switch(str) {
-                case "m": return Lemma.WordGender.Mannlich;
-                case "n": return Lemma.WordGender.Neutrum;
-                case "f": return Lemma.WordGender.Weiblich;
-                case "pl": return Lemma.WordGender.Plural;
-                case "sg": return Lemma.WordGender.Singular;
-                case "": return Lemma.WordGender.Undefined;
-                default: throw new ArgumentException("Invalid value for WordGender: " + str);
+                case "m": return Noun.NounGender.Mannlich;
+                case "n": return Noun.NounGender.Neutrum;
+                case "f": return Noun.NounGender.Weiblich;
+                case "pl": return Noun.NounGender.Plural;
+                case "sg": return Noun.NounGender.Singular;
+                case "": return Noun.NounGender.Undefined;
+                default: throw new ArgumentException("Invalid value for NounGender: " + str);
             }
         }
     }
 
-    public class Lemma {
-        public enum WordGender { Mannlich, Weiblich, Neutrum, Singular, Plural, Undefined };
+    public class Noun {
+        public enum NounGender { Mannlich, Weiblich, Neutrum, Singular, Plural, Undefined };
 
         public int Id { get; internal set; }
-        public string Word { get; set; }
-        public WordGender Gender { get; set; }
+        public string Lemma { get; set; }
+        public NounGender Gender { get; set; }
 
-        public Lemma(string text, WordGender gender) {
-            Word = text;
+        public Noun(string text, NounGender gender) {
+            Lemma = text;
             Gender = gender;
         }
 
-        public Lemma() {
-            Word = "";
-            Gender = WordGender.Undefined;
+        public Noun() {
+            Lemma = "";
+            Gender = NounGender.Undefined;
         }
     }
 }
