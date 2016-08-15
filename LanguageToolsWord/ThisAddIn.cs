@@ -14,7 +14,7 @@ namespace LanguageTools.Word
     public partial class ThisAddIn
     {
         private LemmaDatabase db;
-        private LemmaRepository repo;
+        private NounRepository repo;
         private InstantLookup<MSWord.Document> instantLookup;
         private Dictionary<MSWord.Document, CustomTaskPane> taskPaneMap = new Dictionary<MSWord.Document, CustomTaskPane>();
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
@@ -24,7 +24,7 @@ namespace LanguageTools.Word
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
             db = LemmaDatabase.CreateDefaultInstance();
-            repo = new LemmaRepository(db);
+            repo = new NounRepository(db);
 
             instantLookup = new InstantLookup<MSWord.Document>(new WordActiveTextStrategy(Application), 250, repo);
             instantLookup.OnLemmaFound += InstantLookup_OnLemmaFound;

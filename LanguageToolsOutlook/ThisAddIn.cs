@@ -13,7 +13,7 @@ namespace LanguageTools.Outlook
     public partial class ThisAddIn
     {
         private LemmaDatabase db;
-        private LemmaRepository repo;
+        private NounRepository repo;
         private InstantLookup<MSOutlook.Inspector> instantLookup;
         private bool taskPaneVisible = Properties.Settings.Default.LookupPaneVisible;
         private int paneWidth = Properties.Settings.Default.LookupPaneWidth;
@@ -24,7 +24,7 @@ namespace LanguageTools.Outlook
         private void ThisAddIn_Startup(object sender, EventArgs e)
         {
             db = LemmaDatabase.CreateDefaultInstance();
-            repo = new LemmaRepository(db);
+            repo = new NounRepository(db);
 
             instantLookup = new InstantLookup<MSOutlook.Inspector>( new OutlookActiveTextStrategy(Application), 250, repo );
             instantLookup.Paused = true; // pause it, opening a window will unpause it...

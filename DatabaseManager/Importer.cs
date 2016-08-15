@@ -1,10 +1,6 @@
 ﻿using LanguageTools.Backend;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DatabaseManager {
     internal abstract class Importer {
@@ -16,7 +12,7 @@ namespace DatabaseManager {
             streamLength = fi.Length;
         }
 
-        public abstract IEnumerable<LemmaRepository.BulkItem> Items();
+        public abstract IEnumerable<NounRepository.BulkItem> Items();
 
         public int ProgressPercentage {
             get {

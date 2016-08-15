@@ -1,11 +1,8 @@
 ﻿using LanguageTools.Backend;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DatabaseManager {
     internal class DictCcImporter : Importer {
@@ -22,7 +19,7 @@ namespace DatabaseManager {
             base.Close();
         }
 
-        public void parseLine(string line, List<LemmaRepository.BulkItem> itemList) {
+        public void parseLine(string line, List<NounRepository.BulkItem> itemList) {
             sbWord.Clear();
             sbGender.Clear();
 
@@ -90,9 +87,9 @@ namespace DatabaseManager {
         /// <param name="word"></param>
         /// <param name="gender"></param>
         /// <param name="list"></param>
-        private void AddLemma(StringBuilder word, StringBuilder gender, List<LemmaRepository.BulkItem> list) {
+        private void AddLemma(StringBuilder word, StringBuilder gender, List<NounRepository.BulkItem> list) {
             if(gender.Length > 0) {
-                LemmaRepository.BulkItem item;
+                NounRepository.BulkItem item;
                 item.Gender = ToTrimmedString(gender);
                 item.Word = ToTrimmedString(word);
                 if(item.Word.Length == 0) {
@@ -117,13 +114,13 @@ namespace DatabaseManager {
             return sb.ToString(start, end - start + 1);
         }
 
-        public override IEnumerable<LemmaRepository.BulkItem> Items() {
-            List<LemmaRepository.BulkItem> lineItems = new List<LemmaRepository.BulkItem>();
+        public override IEnumerable<NounRepository.BulkItem> Items() {
+            List<NounRepository.BulkItem> lineItems = new List<NounRepository.BulkItem>();
             string line;
             while((line = reader.ReadLine()) != null) {
                 if(line != "" && !line.StartsWith("#")) {
                     parseLine(line, lineItems);
-                    foreach(LemmaRepository.BulkItem result in lineItems) {
+                    foreach(NounRepository.BulkItem result in lineItems) {
                         yield return result;
                     }
                     lineItems.Clear();

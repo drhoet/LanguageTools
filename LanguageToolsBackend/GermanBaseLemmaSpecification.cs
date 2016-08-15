@@ -38,13 +38,13 @@ namespace LanguageTools.Backend {
                 case Noun.NounGender.Neutrum:
                     List<string> baseWords = RemoveGermanGenitivInflictions(SearchFor);
                     foreach(string baseWord in baseWords) {
-                        if(GermanEqualsIgnoreCase(entity.Lemma, baseWord)) {
+                        if(GermanEqualsIgnoreCase(entity.Word, baseWord)) {
                             return true;
                         }
                     }
                     return false;
                 default:
-                    return GermanEqualsIgnoreCase(entity.Lemma, SearchFor);
+                    return GermanEqualsIgnoreCase(entity.Word, SearchFor);
             }
         }
 

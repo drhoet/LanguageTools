@@ -53,8 +53,10 @@
     <Compile Include="GermanBaseLemmaSpecification.cs" />
     <Compile Include="FuzzyLemmaSpecification.cs" />
     <Compile Include="IPaginated.cs" />
-    <Compile Include="Specification.cs" />
     <Compile Include="Lemma.cs" />
+    <Compile Include="NounRepository.cs" />
+    <Compile Include="Specification.cs" />
+    <Compile Include="Noun.cs" />
     <Compile Include="LemmaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LemmaDatabase.cs" />

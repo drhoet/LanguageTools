@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace LanguageTools.Backend {
-    public class WordGenderConvert {
+    public class NounGenderConvert {
 
         public static string ToString(Noun.NounGender obj) {
             switch(obj) {
@@ -29,20 +29,16 @@ namespace LanguageTools.Backend {
         }
     }
 
-    public class Noun {
+    public class Noun: Lemma {
         public enum NounGender { Mannlich, Weiblich, Neutrum, Singular, Plural, Undefined };
 
-        public int Id { get; internal set; }
-        public string Lemma { get; set; }
         public NounGender Gender { get; set; }
 
-        public Noun(string text, NounGender gender) {
-            Lemma = text;
+        public Noun(string text, NounGender gender): base(text) {
             Gender = gender;
         }
 
-        public Noun() {
-            Lemma = "";
+        public Noun(): base("") {
             Gender = NounGender.Undefined;
         }
     }

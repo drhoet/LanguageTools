@@ -20,7 +20,7 @@ namespace LanguageTools.Backend {
         }
 
         public bool IsSatisfiedBy(Noun entity) {
-            return entity != null && GermanEqualsIgnoreCase(entity.Lemma, SearchFor);
+            return entity != null && GermanEqualsIgnoreCase(entity.Word, SearchFor);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {

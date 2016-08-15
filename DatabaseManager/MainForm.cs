@@ -10,7 +10,7 @@ namespace DatabaseManager {
         private Cache<Noun> memoryCache;
         private ProgressDialog progressDialog = new ProgressDialog();
         private LemmaDatabase db;
-        private LemmaRepository repo;
+        private NounRepository repo;
         private bool updateDatabase = false;
 
         public MainForm() {
@@ -27,8 +27,8 @@ namespace DatabaseManager {
             db.OpenChangeSet();
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
-            List<LemmaRepository.BulkItem> items = new List<LemmaRepository.BulkItem>();
-            foreach(LemmaRepository.BulkItem l in importer.Items()) {
+            List<NounRepository.BulkItem> items = new List<NounRepository.BulkItem>();
+            foreach(NounRepository.BulkItem l in importer.Items()) {
                 items.Add(l);
                 ++count;
                 if(count % 10000 == 0) {
@@ -95,7 +95,7 @@ namespace DatabaseManager {
                 Noun l = memoryCache.RetrieveElement(e.RowIndex);
                 switch(e.ColumnIndex) {
                     case 0: e.Value = l.Id; break;
-                    case 1: e.Value = l.Lemma; break;
+                    case 1: e.Value = l.Word; break;
                     case 2: e.Value = l.Gender; break;
                     default: e.Value = null; break;
                 }
@@ -121,7 +121,7 @@ namespace DatabaseManager {
 
         private void SetLemmaColumnValue(Noun l, int columnIndex, object value) {
             switch(columnIndex) {
-                case 1: l.Lemma = Convert.ToString(value); break;
+                case 1: l.Word = Convert.ToString(value); break;
                 case 2: l.Gender = (Noun.NounGender)value; break;
                 default: throw new ArgumentException(string.Format("Cannot set column {0} to value {1}", columnIndex, value));
             }
@@ -169,7 +169,7 @@ namespace DatabaseManager {
                 db = new LemmaDatabase(fileName);
             }
             db.OpenChangeSet();
-            repo = new LemmaRepository(db);
+            repo = new NounRepository(db);
             RefreshGridView();
             updateDatabase = true;
         }

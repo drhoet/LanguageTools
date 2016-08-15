@@ -9,7 +9,7 @@ namespace LanguageTools.Common
     public class InstantLookup<T>
     {
         public ActiveTextStrategy<T> ActiveTextStrategy { get; private set; }
-        public LemmaRepository LemmaRepository { get; private set; }
+        public NounRepository LemmaRepository { get; private set; }
 
         private bool enabled;
         public bool Enabled
@@ -45,7 +45,7 @@ namespace LanguageTools.Common
         private Timer lookupTimer;
         private string lastLookup = null;
 
-        public InstantLookup(ActiveTextStrategy<T> strategy, int interval, LemmaRepository repo)
+        public InstantLookup(ActiveTextStrategy<T> strategy, int interval, NounRepository repo)
         {
             ActiveTextStrategy = strategy;
             enabled = false;

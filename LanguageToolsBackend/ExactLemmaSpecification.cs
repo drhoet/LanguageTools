@@ -20,7 +20,7 @@ namespace LanguageTools.Backend {
         }
 
         public bool IsSatisfiedBy(Noun entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Lemma, SearchFor, CompareOptions.IgnoreCase) == 0;
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.Compare(entity.Word, SearchFor, CompareOptions.IgnoreCase) == 0;
         }
     }
 }

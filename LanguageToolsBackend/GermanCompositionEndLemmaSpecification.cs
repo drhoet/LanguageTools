@@ -20,7 +20,7 @@ namespace LanguageTools.Backend {
         }
 
         public bool IsSatisfiedBy(Noun entity) {
-            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Lemma, CompareOptions.IgnoreCase);
+            return entity != null && CultureInfo.GetCultureInfo("de-DE").CompareInfo.IsSuffix(SearchFor, entity.Word, CompareOptions.IgnoreCase);
         }
 
         private bool GermanEqualsIgnoreCase(string str1, string str2) {
