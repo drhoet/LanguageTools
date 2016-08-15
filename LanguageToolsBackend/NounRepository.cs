@@ -23,6 +23,5 @@ namespace LanguageTools.Backend
         {
             return new object[] { NounGenderConvert.ToString(val.Gender) };
         }
-
     }
 }

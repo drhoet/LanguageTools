@@ -35,6 +35,7 @@ namespace LanguageTools.Backend {
             ExecuteNonQuery("create index if not exists idx_lemma_word on lemma(word)", null);
             ExecuteNonQuery("create index if not exists idx_lemma_gender_word on lemma(gender, word)", null);
             ExecuteNonQuery("create table if not exists lemma_meaning(lemma_id integer, meaning text, foreign key(lemma_id) references lemma(id))", null);
+            ExecuteNonQuery("create table if not exists preposition (id integer primary key not null, word text collate nocase, wordCase text)", null);
 
             CommitChangeSet();
         }

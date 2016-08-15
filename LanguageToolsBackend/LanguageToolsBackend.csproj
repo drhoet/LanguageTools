@@ -55,6 +55,8 @@
     <Compile Include="IPaginated.cs" />
     <Compile Include="Lemma.cs" />
     <Compile Include="NounRepository.cs" />
+    <Compile Include="Preposition.cs" />
+    <Compile Include="PrepositionRepository.cs" />
     <Compile Include="Specification.cs" />
     <Compile Include="Noun.cs" />
     <Compile Include="LemmaRepository.cs" />

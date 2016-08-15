@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DatabaseManager {
+    [Serializable]
     class ImportParsingException : Exception {
         public ImportParsingException(string message) : base(message) {
         }

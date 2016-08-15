@@ -10,7 +10,8 @@ namespace DatabaseManager {
         private Cache<Noun> memoryCache;
         private ProgressDialog progressDialog = new ProgressDialog();
         private LemmaDatabase db;
-        private NounRepository repo;
+        private NounRepository nounRepo;
+        private PrepositionRepository prepRepo;
         private bool updateDatabase = false;
 
         public MainForm() {
@@ -29,7 +30,10 @@ namespace DatabaseManager {
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
             foreach(Lemma l in importer.Items()) {
-                repo.Add((Noun)l);
+                if(l is Noun)
+                    nounRepo.Add((Noun)l);
+                if (l is Preposition)
+                    prepRepo.Add((Preposition)l);
                 ++count;
                 if(count % 10000 == 0) {
                     db.CommitChangeSet();
@@ -83,7 +87,7 @@ namespace DatabaseManager {
         }
 
         private void dgvData_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e) {
-            if(e.RowIndex == dgvData.RowCount - 2 && e.RowIndex >= repo.Count) {
+            if(e.RowIndex == dgvData.RowCount - 2 && e.RowIndex >= nounRepo.Count) {
                 return;
             }
             if(e.RowIndex == dgvData.RowCount - 1) {
@@ -104,14 +108,14 @@ namespace DatabaseManager {
                 return;
             }
             dbHasChanges = true;
-            if(e.RowIndex >= repo.Count) {
+            if(e.RowIndex >= nounRepo.Count) {
                 Noun l = new Noun();
                 SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
-                repo.Add(l);
+                nounRepo.Add(l);
             } else {
                 Noun l = memoryCache.RetrieveElement(e.RowIndex);
                 SetLemmaColumnValue(l, e.ColumnIndex, e.Value);
-                repo.Update(l);
+                nounRepo.Update(l);
             }
             dbHasChanges = true;
         }
@@ -131,7 +135,7 @@ namespace DatabaseManager {
             dbHasChanges = true;
 
             Noun l = memoryCache.RetrieveElement(e.RowIndex);
-            repo.RemoveById(l.Id);
+            nounRepo.RemoveById(l.Id);
             memoryCache.ReloadAll();
         }
 
@@ -166,7 +170,8 @@ namespace DatabaseManager {
                 db = new LemmaDatabase(fileName);
             }
             db.OpenChangeSet();
-            repo = new NounRepository(db);
+            nounRepo = new NounRepository(db);
+            prepRepo = new PrepositionRepository(db);
             RefreshGridView();
             updateDatabase = true;
         }
@@ -174,9 +179,9 @@ namespace DatabaseManager {
         private void RefreshGridView() {
             updateDatabase = false;
             dgvData.FirstDisplayedScrollingRowIndex = 0; // avoid ArrayIndexOutOfBounds due to showing lines after the last one (due to removed lines)
-            memoryCache = new Cache<Noun>(repo, 100);
+            memoryCache = new Cache<Noun>(nounRepo, 100);
             dgvData.Rows.Clear();
-            dgvData.RowCount = repo.Count + 1;
+            dgvData.RowCount = nounRepo.Count + 1;
             updateDatabase = true;
         }
 

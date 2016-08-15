@@ -2,7 +2,6 @@
 
 namespace LanguageTools.Backend {
     public class NounGenderConvert {
-
         public static string ToString(Noun.NounGender obj) {
             switch(obj) {
                 case Noun.NounGender.Mannlich: return "m";
