@@ -1,4 +1,5 @@
 ﻿using LanguageTools.Backend;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace DatabaseManager {
             base.Close();
         }
 
-        public void parseLine(string line, List<NounRepository.BulkItem> itemList) {
+        public void parseLine(string line, List<Lemma> itemList) {
             sbWord.Clear();
             sbGender.Clear();
 
@@ -75,6 +76,8 @@ namespace DatabaseManager {
                 }
             } catch(ImportParsingException ipe) {
                 ImportErrors.Add(ipe);
+            } catch(Exception e) {
+                ImportErrors.Add(new ImportParsingException(e.Message));
             }
         }
 
@@ -87,10 +90,10 @@ namespace DatabaseManager {
         /// <param name="word"></param>
         /// <param name="gender"></param>
         /// <param name="list"></param>
-        private void AddLemma(StringBuilder word, StringBuilder gender, List<NounRepository.BulkItem> list) {
+        private void AddLemma(StringBuilder word, StringBuilder gender, List<Lemma> list) {
             if(gender.Length > 0) {
-                NounRepository.BulkItem item;
-                item.Gender = ToTrimmedString(gender);
+                Noun item = new Noun();
+                item.Gender = NounGenderConvert.ToGender(ToTrimmedString(gender));
                 item.Word = ToTrimmedString(word);
                 if(item.Word.Length == 0) {
                     // take same word as last time
@@ -114,13 +117,13 @@ namespace DatabaseManager {
             return sb.ToString(start, end - start + 1);
         }
 
-        public override IEnumerable<NounRepository.BulkItem> Items() {
-            List<NounRepository.BulkItem> lineItems = new List<NounRepository.BulkItem>();
+        public override IEnumerable<Lemma> Items() {
+            List<Lemma> lineItems = new List<Lemma>();
             string line;
             while((line = reader.ReadLine()) != null) {
                 if(line != "" && !line.StartsWith("#")) {
                     parseLine(line, lineItems);
-                    foreach(NounRepository.BulkItem result in lineItems) {
+                    foreach(Lemma result in lineItems) {
                         yield return result;
                     }
                     lineItems.Clear();

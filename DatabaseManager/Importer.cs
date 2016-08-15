@@ -12,7 +12,7 @@ namespace DatabaseManager {
             streamLength = fi.Length;
         }
 
-        public abstract IEnumerable<NounRepository.BulkItem> Items();
+        public abstract IEnumerable<Lemma> Items();
 
         public int ProgressPercentage {
             get {

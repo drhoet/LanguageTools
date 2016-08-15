@@ -27,21 +27,17 @@ namespace DatabaseManager {
             db.OpenChangeSet();
             int count = 0, errAlreadyShownCount = 0;
             Importer importer = new DictCcImporter(openFileDialog.FileName);
-            List<NounRepository.BulkItem> items = new List<NounRepository.BulkItem>();
-            foreach(NounRepository.BulkItem l in importer.Items()) {
-                items.Add(l);
+            foreach(Lemma l in importer.Items()) {
+                repo.Add((Noun)l);
                 ++count;
                 if(count % 10000 == 0) {
-                    repo.AddBulk(items);
                     db.CommitChangeSet();
                     db.OpenChangeSet();
                     bgwImportDictionary.ReportProgress(importer.ProgressPercentage,
                         importer.ImportErrors.GetRange(errAlreadyShownCount, importer.ImportErrors.Count - errAlreadyShownCount));
                     errAlreadyShownCount = importer.ImportErrors.Count;
-                    items.Clear();
                 }
             }
-            repo.AddBulk(items);
             db.CommitChangeSet();
             bgwImportDictionary.ReportProgress(100);
 
